@@ -1260,14 +1260,17 @@
 <script>
 // ===== LOADING SCREEN =====
 const loaderText = document.getElementById('loader-text');
-const loadingText = 'CIDSTECH';
-loadingText.split('').forEach((char, index) => {
-  const span = document.createElement('span');
-  span.textContent = char;
-  span.style.animationDelay = `${index * 0.1 + 0.3}s`;
-  loaderText.appendChild(span);
-});
-
+if (loaderText) {
+  const loadingText = 'CIDSTECH';
+  loadingText.split('').forEach((char, index) => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.style.animationDelay = `${index * 0.1 + 0.3}s`;
+    loaderText.appendChild(span);
+  });
+} else {
+  console.error('loader-text element not found');
+}
 setTimeout(() => {
   document.getElementById('loading-screen').classList.add('hidden');
 }, 2200);
