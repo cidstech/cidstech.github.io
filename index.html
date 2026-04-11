@@ -1591,10 +1591,29 @@
 </script>
 </body>
 <script>
-  // Hide loading screen automatically
-  setTimeout(() => {
-    document.getElementById('loading-screen').classList.add('hidden');
-  }, 2000);
+  // Hide loading screen once all content is loaded
+  function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+    }
+  }
+
+  // Wait for page to fully load AND all API calls to complete
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Give API calls time to complete (adjust this time as needed)
+      setTimeout(hideLoadingScreen, 3500);
+    });
+  } else {
+    // Page already loaded
+    setTimeout(hideLoadingScreen, 3500);
+  }
+
+  // Also hide on window load event
+  window.addEventListener('load', () => {
+    setTimeout(hideLoadingScreen, 3500);
+  });
 </script>
 </html>
 
