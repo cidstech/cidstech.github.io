@@ -1591,15 +1591,10 @@
 </script>
 </body>
 <script>
-  // Hide loading screen after animation completes
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const loadingScreen = document.getElementById('loading-screen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-      }
-    }, 2000); // Match the loading bar animation duration
-  });
+  // Hide loading screen automatically
+  setTimeout(() => {
+    document.getElementById('loading-screen').classList.add('hidden');
+  }, 2000);
 </script>
 </html>
 
