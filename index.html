@@ -957,17 +957,6 @@
   .code-var { color: #f1fa8c; }
 </style>
 </head>
-<script>
-  // Hide loading screen after animation completes
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const loadingScreen = document.getElementById('loading-screen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-      }
-    }, 2000); // Match the loading bar animation duration
-  });
-</script>
 <body>
 
 <!-- Loading Screen -->
@@ -1599,6 +1588,15 @@
     requestAnimationFrame(animateParallax);
   }
   animateParallax();
+  // Hide loading screen after animation completes
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+      }
+    }, 2000); // Match the loading bar animation duration
+  });
 </script>
 </body>
 </html>
