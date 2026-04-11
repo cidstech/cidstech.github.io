@@ -1591,7 +1591,7 @@
 </script>
 </body>
 <script>
-  // Hide loading screen once all content is loaded
+  // Hide loading screen after all content is ready
   function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
@@ -1599,21 +1599,15 @@
     }
   }
 
-  // Wait for page to fully load AND all API calls to complete
+  // Wait for both DOM and animations to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      // Give API calls time to complete (adjust this time as needed)
-      setTimeout(hideLoadingScreen, 3500);
+      // Give the counter and content animations time to initialize
+      setTimeout(hideLoadingScreen, 3000); // Increased to 3 seconds
     });
   } else {
-    // Page already loaded
-    setTimeout(hideLoadingScreen, 3500);
+    setTimeout(hideLoadingScreen, 3000);
   }
-
-  // Also hide on window load event
-  window.addEventListener('load', () => {
-    setTimeout(hideLoadingScreen, 3500);
-  });
 </script>
 </html>
 
