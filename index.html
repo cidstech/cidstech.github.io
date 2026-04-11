@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cidstech — Tech Enthusiast & Developer</title>
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/latin-400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/latin-700.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.18/latin-400.css" rel="stylesheet">
+<style>
+  :root {
+    --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    background: #05050a;
+    color: #f0f0f5;
+    min-height: 100vh;
+  }
+
+  /* ===== MESH GRADIENT BACKGROUND ===== */
+  #mesh-bg {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: 0;
+    transition: transform 0.8s var(--ease-in-out), filter 0.8s var(--ease-in-out);
+    will-change: transform, filter;
+  }
+
+  #mesh-bg.active {
+    transform: scale(0.5) translateY(60px);
+    filter: blur(40px) brightness(0.3);
+  }
+
+  .mesh-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    filter: blur(100px);
+    opacity: 0.6;
+  }
+
+  .mesh-blob {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 14s ease-in-out infinite;
+  }
+
+  .blob-orange1 {
+    width: 750px;
+    height: 750px;
+    background: radial-gradient(circle, #ff7a00, #ff9a3c, transparent 70%);
+    top: 10%;
+    left: 15%;
+    animation-delay: 0s;
+  }
+
+  .blob-navy1 {
+    width: 900px;
+    height: 900px;
+    background: radial-gradient(circle, #0a1628, #112240, transparent 70%);
+    top: 35%;
+    right: 5%;
+    animation-delay: -4s;
+  }
+
+  .blob-orange2 {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, #f97316, #fb923c, transparent 70%);
+    bottom: 20%;
+    left: 40%;
+    animation-delay: -8s;
+  }
+
+  .blob-navy2 {
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, #0d1b2a, #1b263b, transparent 70%);
+    top: 5%;
+    right: 30%;
+    animation-delay: -2s;
+  }
+
+  .blob-mid {
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, #ff8c42, #1e3a5f, transparent 70%);
+    bottom: 10%;
+    right: 20%;
+    animation-delay: -6s;
+  }
+
+  .blob-accent {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #e65c00, #0f2744, transparent 70%);
+    top: 55%;
+    left: 10%;
+    animation-delay: -10s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(70px, -90px) scale(1.08); }
+    50% { transform: translate(-50px, 70px) scale(0.96); }
+    75% { transform: translate(90px, 50px) scale(1.04); }
+  }
+
+  /* ===== NOISE OVERLAY ===== */
+  #noise-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  #main-content {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.8s var(--ease-in-out), filter 0.8s var(--ease-in-out);
+  }
+
+  #main-content.active {
+    transform: scale(0.9) translateY(-30px);
+    filter: blur(12px);
+    pointer-events: none;
+  }
+
+  /* ===== LOADING SCREEN ===== */
+  #loading-screen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: #05050a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.6s var(--ease-in-out), visibility 0.6s;
+  }
+
+  #loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .loader-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 0.2em;
+    overflow: hidden;
+  }
+
+  .loader-text span {
+    display: inline-block;
+    animation: slideUp 0.5s var(--ease-out-expo) both;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .loader-bar {
+    width: 200px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    margin-top: 30px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .loader-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff7a00, #ff9a3c, #0a1628);
+    border-radius: 2px;
+    animation: loadBar 2s var(--ease-in-out) forwards;
+  }
+
+  @keyframes loadBar {
+    to { width: 100%; }
+  }
+
+  /* ===== NAVBAR ===== */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 40px;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(5, 5, 10, 0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInDown 0.6s var(--ease-in-out) 2.2s forwards;
+  }
+
+  @keyframes fadeInDown {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #ff7a00, #ff9a3c, #1e3a5f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: rgba(240, 240, 245, 0.5);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: color 0.3s var(--ease-in-out), transform 0.3s var(--ease-in-out);
+    display: inline-block;
+  }
+
+  .nav-links a:hover {
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 40px 80px;
+  }
+
+  .hero-inner {
+    max-width: 900px;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.85rem;
+    color: rgba(240, 240, 245, 0.6);
+    margin-bottom: 30px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s var(--ease-in-out) 2.4s forwards;
+  }
+
+  .hero-badge .dot {
+    width: 8px;
+    height: 8px;
+    background: #30d158;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s var(--ease-in-out) 2.6s forwards;
+  }
+
+  .hero-title .gradient-text {
+    background: linear-gradient(135deg, #ff7a00 0%, #ff9a3c 20%, #ff8c42 40%, #1e3a5f 60%, #0a1628 80%, #ff7a00 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 6s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    color: rgba(240, 240, 245, 0.4);
+    max-width: 600px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s var(--ease-in-out) 2.8s forwards;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s var(--ease-in-out) 3s forwards;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-in-out);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff7a00, #f97316);
+    color: #05050a;
+    box-shadow: 0 4px 20px rgba(255, 122, 0, 0.25);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(255, 122, 0, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.04);
+    color: #f0f0f5;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-3px) scale(1.02);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* ===== STATS BAR ===== */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    padding: 60px 40px;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s var(--ease-in-out) 3.2s forwards;
+  }
+
+  .stat-item {
+    text-align: center;
+    transition: transform 0.4s var(--ease-in-out);
+  }
+
+  .stat-item:hover {
+    transform: translateY(-5px);
+  }
+
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff7a00, #ff9a3c, #1e3a5f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: rgba(240, 240, 245, 0.3);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== SECTIONS ===== */
+  .section {
+    padding: 100px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s var(--ease-in-out), transform 0.8s var(--ease-in-out);
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: rgba(240, 240, 245, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    margin-bottom: 50px;
+    letter-spacing: -0.02em;
+  }
+
+  /* ===== PROJECT CARDS ===== */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .project-card {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 36px;
+    cursor: pointer;
+    transition: all 0.5s var(--ease-in-out);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,122,0,0.08), rgba(30,58,95,0.05), rgba(255,154,60,0.06));
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-in-out);
+  }
+
+  .project-card:hover::before {
+    opacity: 1;
+  }
+
+  .project-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    transition: transform 0.5s var(--ease-in-out);
+  }
+
+  .project-card:hover .card-icon {
+    transform: scale(1.1) rotate(-5deg);
+  }
+
+  .icon-android { background: linear-gradient(135deg, #34a853, #00c853); }
+  .icon-ios { background: linear-gradient(135deg, #ff7a00, #ff9a3c); }
+  .icon-social { background: linear-gradient(135deg, #f97316, #1e3a5f); }
+  .icon-code { background: linear-gradient(135deg, #0a1628, #1b263b); }
+  .icon-meme { background: linear-gradient(135deg, #ff9500, #ff6b00); }
+
+  .card-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(255,255,255,0.04);
+    color: rgba(240,240,245,0.4);
+    margin-bottom: 16px;
+    transition: all 0.4s var(--ease-in-out);
+  }
+
+  .project-card:hover .card-tag {
+    background: rgba(255,255,255,0.08);
+    color: rgba(240,240,245,0.7);
+  }
+
+  .card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s var(--ease-in-out);
+  }
+
+  .project-card:hover .card-title {
+    transform: translateX(5px);
+  }
+
+  .card-desc {
+    font-size: 0.9rem;
+    color: rgba(240, 240, 245, 0.35);
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+    transition: color 0.4s var(--ease-in-out);
+  }
+
+  .project-card:hover .card-desc {
+    color: rgba(240, 240, 245, 0.55);
+  }
+
+  .card-arrow {
+    position: absolute;
+    bottom: 36px;
+    right: 36px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s var(--ease-in-out);
+  }
+
+  .card-arrow svg {
+    width: 16px;
+    height: 16px;
+    stroke: rgba(240,240,245,0.25);
+    transition: all 0.5s var(--ease-in-out);
+  }
+
+  .project-card:hover .card-arrow {
+    background: rgba(255,255,255,0.08);
+    transform: translateX(5px);
+  }
+
+  .project-card:hover .card-arrow svg {
+    stroke: #fff;
+  }
+
+  /* ===== SOCIAL LINKS ===== */
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .social-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px 32px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+    transition: all 0.5s var(--ease-in-out);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .social-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+  }
+
+  .social-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    transition: transform 0.5s var(--ease-in-out);
+    flex-shrink: 0;
+  }
+
+  .social-card:hover .social-icon {
+    transform: scale(1.15);
+  }
+
+  .social-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .social-info p {
+    font-size: 0.8rem;
+    color: rgba(240,240,245,0.35);
+  }
+
+  .tiktok-icon { background: linear-gradient(135deg, #25f4ee, #fe2c55); }
+  .youtube-icon { background: linear-gradient(135deg, #ff0000, #ff4444); }
+  .discord-icon { background: linear-gradient(135deg, #5865f2, #7289da); }
+  .telegram-icon { background: linear-gradient(135deg, #0088cc, #34a0d0); }
+  .reddit-icon { background: linear-gradient(135deg, #ff4500, #ff6633); }
+  .github-icon { background: linear-gradient(135deg, #ff9a3c, #f97316); }
+
+  /* ===== MODAL ===== */
+  #item-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  #item-modal.active {
+    pointer-events: all;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+  }
+
+  .modal-content {
+    position: absolute;
+    z-index: 1;
+    background: rgba(10, 10, 18, 0.96);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 36px;
+    overflow-y: auto;
+    opacity: 0;
+    transition: all 0.7s var(--ease-in-out);
+    box-shadow: 0 30px 100px rgba(0,0,0,0.6);
+    will-change: top, left, width, height, transform, opacity;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-in-out);
+    color: #fff;
+    font-size: 1.2rem;
+  }
+
+  .modal-close:hover {
+    background: rgba(255,255,255,0.12);
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  .modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 28px;
+  }
+
+  .modal-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .modal-subtitle {
+    font-size: 1rem;
+    color: rgba(240,240,245,0.35);
+    margin-bottom: 30px;
+  }
+
+  .modal-body {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: rgba(240,240,245,0.5);
+  }
+
+  .modal-body p {
+    margin-bottom: 16px;
+  }
+
+  .modal-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .modal-tech span {
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(240,240,245,0.4);
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-left: 40px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #ff7a00, #ff9a3c, #1e3a5f, #0a1628);
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 50px;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.6s var(--ease-in-out);
+  }
+
+  .timeline-item.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #05050a;
+    border: 3px solid #ff9a3c;
+    z-index: 1;
+    transition: all 0.4s var(--ease-in-out);
+  }
+
+  .timeline-item:hover::before {
+    background: #ff9a3c;
+    box-shadow: 0 0 20px rgba(255, 154, 60, 0.5);
+  }
+
+  .timeline-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: rgba(240,240,245,0.25);
+    margin-bottom: 6px;
+  }
+
+  .timeline-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .timeline-desc {
+    font-size: 0.9rem;
+    color: rgba(240,240,245,0.35);
+    line-height: 1.6;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 60px 40px;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.03);
+    margin-top: 60px;
+  }
+
+  footer p {
+    font-size: 0.85rem;
+    color: rgba(240,240,245,0.25);
+  }
+
+  footer .footer-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #ff7a00, #ff9a3c, #1e3a5f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { gap: 18px; }
+    .nav-links a { font-size: 0.8rem; }
+    .hero { padding: 100px 24px 60px; }
+    .section { padding: 60px 24px; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .social-grid { grid-template-columns: 1fr; }
+    .modal-content { padding: 28px; }
+    .stats-bar { gap: 30px; }
+    .about-content { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* ===== GLOWING CURSOR ===== */
+  .glow-cursor {
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(circle, rgba(255, 154, 60, 0.06), transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s;
+  }
+
+  /* ===== ABOUT SECTION ===== */
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .about-text p {
+    color: rgba(240,240,245,0.45);
+    line-height: 1.8;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+  }
+
+  .about-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .code-block {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .code-keyword { color: #ff79c6; }
+  .code-string { color: #50fa7b; }
+  .code-comment { color: rgba(240,240,245,0.2); }
+  .code-func { color: #8be9fd; }
+  .code-var { color: #f1fa8c; }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loader-text" id="loader-text"></div>
+  <div class="loader-bar">
+    <div class="loader-bar-fill"></div>
+  </div>
+</div>
+
+<!-- Mesh Gradient Background -->
+<div id="mesh-bg">
+  <div class="mesh-layer">
+    <div class="mesh-blob blob-orange1"></div>
+    <div class="mesh-blob blob-navy1"></div>
+    <div class="mesh-blob blob-orange2"></div>
+    <div class="mesh-blob blob-navy2"></div>
+    <div class="mesh-blob blob-mid"></div>
+    <div class="mesh-blob blob-accent"></div>
+  </div>
+</div>
+
+<!-- Noise Overlay -->
+<div id="noise-overlay"></div>
+
+<!-- Glowing Cursor -->
+<div class="glow-cursor" id="glow-cursor"></div>
+
+<!-- Main Content -->
+<div id="main-content">
+
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-logo">CIDSTECH</div>
+    <ul class="nav-links">
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#journey">Journey</a></li>
+      <li><a href="#social">Social</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Available for collaborations
+      </div>
+      <h1 class="hero-title">
+        Hey, I'm <span class="gradient-text">Cidstech</span>
+      </h1>
+      <p class="hero-subtitle">
+        Tech enthusiast, Techtoker, and open-source developer. From AOSP ROMs for legacy devices to iOS jailbreaks — I breathe new life into forgotten hardware.
+      </p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v18M18 3v18M6 8h12M6 16h12M6 12h12"/></svg>
+          View Projects
+        </a>
+        <a href="#social" class="btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7.5v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5 0-.28-.03-.56-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          Follow Me
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-number" data-count="6" data-suffix="K+">0</div>
+      <div class="stat-label">Followers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-count="2" data-suffix="+">0</div>
+      <div class="stat-label">Years Coding</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-count="15" data-suffix="M+">0</div>
+      <div class="stat-label">Video Views</div>
+    </div>
+  </div>
+
+  <!-- Projects Section -->
+  <section class="section" id="projects">
+    <div class="section-label">// Projects</div>
+    <h2 class="section-title">What I've Built</h2>
+    <div class="projects-grid">
+
+      <div class="project-card" data-project="nexus10">
+        <div class="card-icon icon-android">🤖</div>
+        <span class="card-tag">AOSP / Android</span>
+        <h3 class="card-title">AOSP ROMs for Nexus 10</h3>
+        <p class="card-desc">Successfully built Android 4.2.2 from AOSP source code for the Google Nexus 10, bringing a clean Android experience to this legendary tablet.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+      <div class="project-card" data-project="ipod-touch">
+        <div class="card-icon icon-ios">🍎</div>
+        <span class="card-tag">Jailbreak / iOS</span>
+        <h3 class="card-title">iOS 7 Multitouch Fix</h3>
+        <p class="card-desc">Fixed multitouch in an iOS 7 port for the iPod Touch 4th Generation, enabling full touch functionality for the legacy jailbreak community.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+      <div class="project-card" data-project="techtok">
+        <div class="card-icon icon-social">📱</div>
+        <span class="card-tag">Content Creation</span>
+        <h3 class="card-title">TechTok & Tech Shorts</h3>
+        <p class="card-desc">Creating viral tech content on TikTok and YouTube Shorts — covering ROM development, jailbreaks, retro tech, and the latest in mobile tech culture.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+      <div class="project-card" data-project="uttm-debian">
+        <div class="card-icon icon-code">💻</div>
+        <span class="card-tag">Virtualization</span>
+        <h3 class="card-title">KDE Debian on M4 iPad Pro</h3>
+        <p class="card-desc">Successfully booted KDE Debian on an M4 iPad Pro using UTM with JIT, pushing the limits of mobile virtualization.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+      <div class="project-card" data-project="meme">
+        <div class="card-icon icon-meme">😂</div>
+        <span class="card-tag">Viral Meme</span>
+        <h3 class="card-title">"fun fact: this ipad is older than u"</h3>
+        <p class="card-desc">Created the somewhat viral meme that resonated with tech enthusiasts worldwide, bringing humor to retro tech culture.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+      <div class="project-card" data-project="legacy">
+        <div class="card-icon" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">🔧</div>
+        <span class="card-tag">Legacy Support</span>
+        <h3 class="card-title">Legacy Device Revival</h3>
+        <p class="card-desc">From installing Windows 11 on a Poco X3 Pro to booting native Fedora on the same device — dedicated to keeping old hardware alive.</p>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Journey Section -->
+  <section class="section" id="journey">
+    <div class="section-label">// Journey</div>
+    <h2 class="section-title">My Tech Journey</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">2020</div>
+        <div class="timeline-title">First Custom ROM Flash</div>
+        <div class="timeline-desc">Flashed my first custom ROM — the moment I discovered that I could completely transform what my device could do. It was the spark that ignited my passion for tech.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2021</div>
+        <div class="timeline-title">Virtual Machine Experimentation</div>
+        <div class="timeline-desc">Began experimenting with virtual machines, running multiple operating systems simultaneously and exploring different computing environments.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2022</div>
+        <div class="timeline-title">Hackintosh & Linux Distros</div>
+        <div class="timeline-desc">Started hackintoshing and trying out several Linux distros — Ubuntu and Debian were the first. Fell in love with open-source software and the freedom it offers.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2023</div>
+        <div class="timeline-title">Daily Driving Linux & Major Milestones</div>
+        <div class="timeline-desc">A massive year: daily drove Linux, installed Windows 11 on a Poco X3 Pro smartphone, achieved a successful hackintosh build, got my first ever actual Mac (M2 Mac Mini), and downgraded an iPhone 3GS to 3.1.2 using Cydia SHSH blobs.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2024</div>
+        <div class="timeline-title">Wallpaper Contest, Arch Linux & GSI Ports</div>
+        <div class="timeline-desc">Made my first wallpaper for the Ubuntu 24.04 wallpaper contest (didn't win though), installed Arch Linux, and started trying out GSI ports on my Redmi K20 Pro.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2025</div>
+        <div class="timeline-title">Viral Growth & Major Contributions</div>
+        <div class="timeline-desc">Fixed multitouch in an iOS 7 port for the 4th generation iPod touch, started blowing up on YouTube Shorts and TikTok, began contributing to the AppleInternal community, booted native Fedora Workstation on my Poco X3 Pro with a mainline Linux kernel, began experimenting with AOSP builds on my Samsung Galaxy S2, and made the somewhat viral meme "fun fact: this ipad is older than u".</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2026</div>
+        <div class="timeline-title">AOSP Builds & UTM Virtualization</div>
+        <div class="timeline-desc">Successfully built Android 4.2.2 from AOSP source code for my Google Nexus 10, and successfully booted KDE Debian on my M4 iPad Pro using UTM with JIT — pushing the limits of what mobile hardware can do.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Section -->
+  <section class="section" id="social">
+    <div class="section-label">// Social</div>
+    <h2 class="section-title">Find Me Online</h2>
+    <div class="social-grid">
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon tiktok-icon">♪</div>
+        <div class="social-info">
+          <h4>TikTok</h4>
+          <p>@cidstech • Tech content & dev logs</p>
+        </div>
+      </a>
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon youtube-icon">▶</div>
+        <div class="social-info">
+          <h4>YouTube</h4>
+          <p>Cidstech • Tech Shorts</p>
+        </div>
+      </a>
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon discord-icon">💬</div>
+        <div class="social-info">
+          <h4>Discord</h4>
+          <p>@cidstech • DMs Open</p>
+        </div>
+      </a>
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon telegram-icon">✈️</div>
+        <div class="social-info">
+          <h4>Telegram</h4>
+          <p>@cidstech • Feel Free to Ask Me Anything There</p>
+        </div>
+      </a>
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon reddit-icon">🤖</div>
+        <div class="social-info">
+          <h4>Reddit</h4>
+          <p>u/GoldenWubbabunga • Active in Tech-Related Subs</p>
+        </div>
+      </a>
+      <a class="social-card" href="#" target="_blank">
+        <div class="social-icon github-icon">⌨</div>
+        <div class="social-info">
+          <h4>GitHub</h4>
+          <p>cidstech • Open source projects</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section" id="about">
+    <div class="section-label">// About</div>
+    <h2 class="section-title">About Me</h2>
+    <div class="about-content">
+      <div class="about-text">
+        <p>
+          I'm Cidstech — a tech enthusiast who believes no device should be left behind. My journey started with flashing my first custom ROM in 2020 and has evolved into a passion for pushing hardware to its absolute limits.
+        </p>
+        <p>
+          From building AOSP ROMs for the Google Nexus 10 to fixing multitouch in an iOS 7 port for the iPod Touch 4G, to booting KDE Debian on an M4 iPad Pro — I've always been obsessed with making old tech do new things.
+        </p>
+        <p>
+          Now, I'm sharing that journey with thousands through TechTok content and Tech Shorts, helping others discover the magic of custom development, jailbreaking, and the beauty of legacy tech.
+        </p>
+      </div>
+      <div class="about-visual">
+        <div class="code-block">
+          <span class="code-comment">// whoami.sh</span><br>
+          <span class="code-keyword">const</span> <span class="code-var">developer</span> = {<br>
+          &nbsp;&nbsp;name: <span class="code-string">"Cidstech"</span>,<br>
+          &nbsp;&nbsp;role: <span class="code-string">"TechTok Creator"</span>,<br>
+          &nbsp;&nbsp;focus: [<span class="code-string">"AOSP"</span>, <span class="code-string">"Jailbreak"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"Legacy Revival"</span>],<br>
+          &nbsp;&nbsp;<span class="code-func">build</span>(device) {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> device.<span class="code-func">revive</span>();<br>
+          &nbsp;&nbsp;}<br>
+          };
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">CIDSTECH</div>
+    <p>Built with passion for legacy tech • © 2026 Cidstech</p>
+  </footer>
+
+</div>
+
+<!-- Modal -->
+<div id="item-modal">
+  <div class="modal-backdrop" id="modal-backdrop"></div>
+  <div class="modal-content" id="modal-content">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-icon" id="modal-icon"></div>
+    <h2 class="modal-title" id="modal-title"></h2>
+    <p class="modal-subtitle" id="modal-subtitle"></p>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-tech" id="modal-tech"></div>
+  </div>
+</div>
+
+<script>
+  // ===== LOADING SCREEN =====
+  const loaderText = document.getElementById('loader-text');
+  const loadingText = 'CIDSTECH';
+  loadingText.split('').forEach((char, index) => {
+    const span = document.createElement('span');
+    span.textContent = char;
+    span.style.animationDelay = `${index * 0.1 + 0.3}s`;
+    loaderText.appendChild(span);
+  });
+
+  setTimeout(() => {
+    document.getElementById('loading-screen').classList.add('hidden');
+  }, 2200);
+
+  // ===== GLOW CURSOR =====
+  const glowCursor = document.getElementById('glow-cursor');
+  document.addEventListener('mousemove', (e) => {
+    glowCursor.style.left = e.clientX + 'px';
+    glowCursor.style.top = e.clientY + 'px';
+  });
+
+  // ===== SCROLL ANIMATIONS =====
+  const observerOptions = {
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.section, .timeline-item').forEach(el => {
+    observer.observe(el);
+  });
+
+  // ===== COUNTER ANIMATION =====
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const counter = entry.target;
+        const target = parseInt(counter.dataset.count);
+        const suffix = counter.dataset.suffix || '';
+        const duration = 2000;
+        const start = performance.now();
+
+        function updateCounter(currentTime) {
+          const elapsed = currentTime - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const currentVal = Math.floor(eased * target);
+          counter.textContent = currentVal;
+          if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+          } else {
+            counter.textContent = target + suffix;
+          }
+        }
+        requestAnimationFrame(updateCounter);
+        counterObserver.unobserve(counter);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stat-number').forEach(el => {
+    counterObserver.observe(el);
+  });
+
+  // ===== PROJECT DATA =====
+  const projectData = {
+    'nexus10': {
+      icon: '🤖',
+      iconClass: 'icon-android',
+      title: 'AOSP ROMs for Nexus 10',
+      subtitle: 'Android 4.2.2 Built from Source',
+      body: `<p>In 2026, I successfully built Android 4.2.2 from AOSP source code for my Google Nexus 10. This was a major milestone in my journey through custom ROM development.</p>
+      <p>The build process involved setting up the complete AOSP build environment, configuring the device tree for the Nexus 10 (codenamed "manta"), resolving build dependencies, and finally compiling the entire Android system from source.</p>
+      <p>Successfully booting the ROM on the device was an incredible feeling — proving that even after all these years, the Nexus 10 could still run a clean, stock Android experience built from the ground up.</p>`,
+      tech: ['AOSP', 'Android 4.2.2', 'Device Tree', 'Manta', 'Build System', 'Git']
+    },
+    'ipod-touch': {
+      icon: '🍎',
+      iconClass: 'icon-ios',
+      title: 'iOS 7 Multitouch Fix',
+      subtitle: 'Legacy Jailbreak Community Contribution',
+      body: `<p>In 2025, I fixed multitouch in an iOS 7 port for the iPod Touch 4th Generation. The iPod Touch 4G was a beloved device in the jailbreak community, and getting iOS 7 to work on it was already a challenge — but without multitouch, it was nearly unusable.</p>
+      <p>I dove into the driver-level code, reverse-engineered the touch input stack, and identified the root cause of the issue. The fix required patching the IOMobileFramebuffer kext and adjusting the touch input handling to work with the legacy hardware.</p>
+      <p>This fix was a significant contribution to the legacy iOS jailbreaking community, allowing thousands of users to actually use iOS 7 on their iPod Touch 4G with full multitouch support.</p>`,
+      tech: ['iOS 7', 'Jailbreak', 'Kernel Patching', 'Reverse Engineering', 'C', 'Objective-C']
+    },
+    'techtok': {
+      icon: '📱',
+      iconClass: 'icon-social',
+      title: 'TechTok & Tech Shorts',
+      subtitle: 'Viral Tech Content Creation',
+      body: `<p>In 2025, I started blowing up on YouTube Shorts and TikTok with my tech content. What started as sharing my tech experiments quickly turned into a rapidly growing audience of tech enthusiasts.</p>
+      <p>I create short-form tech content covering everything from ROM development tutorials to jailbreak guides, retro tech showcases, and behind-the-scenes looks at mobile development. My content bridges the gap between complex technical concepts and accessible, entertaining videos.</p>
+      <p>With 15M+ video views and a growing community, I've become a recognized voice in the tech development and jailbreak communities.</p>`,
+      tech: ['TikTok', 'YouTube Shorts', 'Content Strategy', 'Community Building', 'Tech Education']
+    },
+    'uttm-debian': {
+      icon: '💻',
+      iconClass: 'icon-code',
+      title: 'KDE Debian on M4 iPad Pro',
+      subtitle: 'Pushing Mobile Virtualization Limits',
+      body: `<p>In 2026, I successfully booted KDE Debian on my M4 iPad Pro using UTM with JIT enabled. This achievement pushed the boundaries of what mobile virtualization can accomplish.</p>
+      <p>UTM allows running virtual machines on iOS devices, and enabling JIT (Just-In-Time) compilation significantly improves performance. Booting a full desktop Linux distribution with a complete KDE desktop environment on an iPad is a testament to the power of modern Apple Silicon chips.</p>
+      <p>This project involved configuring UTM, setting up the virtual machine, installing KDE Debian, and optimizing performance with JIT to get a smooth, usable Linux desktop experience on an iPad Pro.</p>`,
+      tech: ['UTM', 'JIT', 'KDE', 'Debian', 'iPad Pro', 'Virtualization', 'Apple Silicon']
+    },
+    'meme': {
+      icon: '😂',
+      iconClass: 'icon-meme',
+      title: '"fun fact: this ipad is older than u"',
+      subtitle: 'A Somewhat Viral Tech Meme',
+      body: `<p>In 2025, I created the meme "fun fact: this ipad is older than u" — and it went somewhat viral in the tech community.</p>
+      <p>The meme resonated with tech enthusiasts who appreciate the longevity of Apple devices and the fact that older iPads are still in use by people who weren't even born when they were released.</p>
+      <p>It became a cultural touchstone in retro tech circles, sparking conversations about device longevity, tech nostalgia, and the rapid pace of technological change.</p>`,
+      tech: ['Memes', 'Viral Content', 'Tech Culture', 'Social Media']
+    },
+    'legacy': {
+      icon: '🔧',
+      iconClass: '',
+      title: 'Legacy Device Revival',
+      subtitle: 'Keeping Old Hardware Alive',
+      body: `<p>From installing Windows 11 on a Poco X3 Pro smartphone to booting native Fedora Workstation on the same device with a mainline Linux kernel — I've always been dedicated to keeping old hardware alive and pushing it beyond its intended limits.</p>
+      <p>I've experimented with GSI ports on my Redmi K20 Pro, tried AOSP builds on my Samsung Galaxy S2, and contributed to the AppleInternal community with various fixes and improvements.</p>
+      <p>This philosophy — that "old" doesn't mean "obsolete" — has been the cornerstone of everything I do in the tech space.</p>`,
+      tech: ['Linux', 'Android', 'Hackintosh', 'Windows 11', 'Mainline Kernel', 'GSI', 'Open Source']
+    }
+  };
+
+  // ===== MODAL SYSTEM WITH MORPH ANIMATION =====
+  const modal = document.getElementById('item-modal');
+  const mainContent = document.getElementById('main-content');
+  const meshBg = document.getElementById('mesh-bg');
+  const modalContent = document.getElementById('modal-content');
+  const modalClose = document.getElementById('modal-close');
+  const modalBackdrop = document.getElementById('modal-backdrop');
+
+  let currentCardRect = null;
+  let isAnimating = false;
+
+  function populateModal(projectKey) {
+    const data = projectData[projectKey];
+    if (!data) return;
+
+    document.getElementById('modal-icon').className = `modal-icon ${data.iconClass}`;
+    document.getElementById('modal-icon').textContent = data.icon;
+    document.getElementById('modal-title').textContent = data.title;
+    document.getElementById('modal-subtitle').textContent = data.subtitle;
+    document.getElementById('modal-body').innerHTML = data.body;
+
+    const techContainer = document.getElementById('modal-tech');
+    techContainer.innerHTML = '';
+    data.tech.forEach(t => {
+      const span = document.createElement('span');
+      span.textContent = t;
+      techContainer.appendChild(span);
+    });
+  }
+
+  function openModal(projectKey, cardElement) {
+    if (isAnimating) return;
+    isAnimating = true;
+    currentCardRect = cardElement.getBoundingClientRect();
+
+    populateModal(projectKey);
+
+    // Show modal container
+    modal.style.display = 'flex';
+    modal.style.opacity = '0';
+    modal.style.visibility = 'visible';
+
+    // Set initial state matching card
+    modalContent.style.top = currentCardRect.top + 'px';
+    modalContent.style.left = currentCardRect.left + 'px';
+    modalContent.style.width = currentCardRect.width + 'px';
+    modalContent.style.height = currentCardRect.height + 'px';
+    modalContent.style.opacity = '0';
+    modalContent.style.transform = 'none';
+    modalContent.style.borderRadius = '20px';
+    modalContent.style.padding = '36px';
+    modalContent.style.maxHeight = 'none';
+    modalContent.style.overflow = 'hidden';
+    modalContent.style.transition = 'none';
+
+    // Show backdrop immediately but transparent
+    modalBackdrop.style.transition = 'none';
+    modalBackdrop.style.opacity = '0';
+
+    // Force reflow
+    modal.offsetHeight;
+    modalContent.offsetHeight;
+
+    // Calculate final dimensions
+    const margin = 40;
+    const maxWidth = Math.min(900, window.innerWidth - margin * 2);
+    const maxHeight = window.innerHeight - margin * 2;
+
+    // Animate to final state
+    requestAnimationFrame(() => {
+      // Background effects
+      mainContent.classList.add('active');
+      meshBg.classList.add('active');
+
+      // Modal animations
+      modal.style.transition = 'opacity 0.6s var(--ease-in-out)';
+      modal.style.opacity = '1';
+      modal.style.visibility = 'visible';
+
+      modalBackdrop.style.transition = 'opacity 0.5s var(--ease-in-out)';
+      modalBackdrop.style.opacity = '1';
+
+      modalContent.style.transition = 'all 0.7s var(--ease-in-out)';
+      modalContent.style.top = '50%';
+      modalContent.style.left = '50%';
+      modalContent.style.width = maxWidth + 'px';
+      modalContent.style.height = 'auto';
+      modalContent.style.maxHeight = maxHeight + 'px';
+      modalContent.style.transform = 'translate(-50%, -50%)';
+      modalContent.style.borderRadius = '28px';
+      modalContent.style.padding = '50px';
+      modalContent.style.overflowY = 'auto';
+      modalContent.style.opacity = '1';
+
+      document.body.style.overflow = 'hidden';
+
+      setTimeout(() => {
+        isAnimating = false;
+      }, 750);
+    });
+  }
+
+  function closeModal() {
+    if (isAnimating || !currentCardRect) return;
+    isAnimating = true;
+
+    // Animate back to card position
+    modalContent.style.transition = 'all 0.6s var(--ease-in-out)';
+    modalContent.style.top = currentCardRect.top + 'px';
+    modalContent.style.left = currentCardRect.left + 'px';
+    modalContent.style.width = currentCardRect.width + 'px';
+    modalContent.style.height = currentCardRect.height + 'px';
+    modalContent.style.maxHeight = 'none';
+    modalContent.style.transform = 'none';
+    modalContent.style.borderRadius = '20px';
+    modalContent.style.padding = '36px';
+    modalContent.style.overflow = 'hidden';
+    modalContent.style.opacity = '0';
+
+    modalBackdrop.style.transition = 'opacity 0.4s var(--ease-in-out)';
+    modalBackdrop.style.opacity = '0';
+
+    mainContent.classList.remove('active');
+    meshBg.classList.remove('active');
+
+    document.body.style.overflow = '';
+
+    setTimeout(() => {
+      modal.style.opacity = '0';
+      modal.style.visibility = 'hidden';
+      currentCardRect = null;
+      isAnimating = false;
+    }, 650);
+  }
+
+  document.querySelectorAll('.project-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const projectKey = card.dataset.project;
+      openModal(projectKey, card);
+    });
+  });
+
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ===== SMOOTH SCROLL =====
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+
+  // ===== PARALLAX ON BLOBS =====
+  let mouseX = 0, mouseY = 0;
+  let blobX = 0, blobY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 30;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 30;
+  });
+
+  function animateParallax() {
+    blobX += (mouseX - blobX) * 0.02;
+    blobY += (mouseY - blobY) * 0.02;
+
+    const meshBgEl = document.getElementById('mesh-bg');
+    meshBgEl.style.transform = `translate(${blobX}px, ${blobY}px)`;
+
+    requestAnimationFrame(animateParallax);
+  }
+  animateParallax();
+</script>
+</body>
+</html>
+
