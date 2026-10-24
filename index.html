@@ -1,523 +1,814 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cidstech — Tech Enthusiast & Developer</title>
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/latin-400.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/latin-700.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.18/latin-800.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.18/latin-400.css" rel="stylesheet">
-<style>
-  :root {
-    --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-highlight: rgba(255, 255, 255, 0.12);
-    --glass-shadow: rgba(0, 0, 0, 0.3);
-    --glow-color: rgba(255, 122, 0, 0.4);
-    --anim-speed: 0.7;
-    --gaussian-blur: 12px;
-    --color1: 88, 101, 242;
-    --color2: 255, 77, 109;
-  }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+<!-- Inter Font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  body {
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
-    background: #0a0514;
-    color: #f0f0f5;
-    min-height: 100vh;
-  }
-
-  #webgl-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-  }
-
-  #noise-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1; pointer-events: none;
-    opacity: 0.03;
-    background-image: url("image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 256px;
-  }
-
-  #main-content { position: relative; z-index: 2; }
-
-  /* Loading Screen */
-  #loading-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1000; background: #0a0514;
-    display: flex; align-items: center; justify-content: center; flex-direction: column;
-    transition: opacity 0.6s var(--ease-in-out), visibility 0.6s;
-  }
-  #loading-screen.hidden { opacity: 0; visibility: hidden; }
-  .loader-text { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 2rem; color: #fff; letter-spacing: 0.2em; overflow: hidden; }
-  .loader-text span { display: inline-block; animation: slideUp 0.5s var(--ease-out-expo) both; }
-  @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .loader-bar { width: 200px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 30px; border-radius: 2px; overflow: hidden; }
-  .loader-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #7b2ff7, #c084fc, #ff4d6d, #ff9500); border-radius: 2px; animation: loadBar 2s var(--ease-in-out) forwards; }
-  @keyframes loadBar { to { width: 100%; } }
-
-  /* Liquid Glass */
-  .liquid-glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--glass-border);
-    position: relative; overflow: hidden;
-    transition: all var(--anim-speed) var(--ease-out-expo);
-  }
-  .liquid-glass::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); pointer-events: none;
-  }
-  .liquid-glass::after {
-    content: ''; position: absolute; inset: 0; border-radius: inherit;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
-    pointer-events: none; transition: opacity var(--anim-speed) var(--ease-out-expo);
-  }
-  .liquid-glass:hover {
-    border-color: var(--glass-highlight);
-    box-shadow: 0 8px 32px var(--glass-shadow), 0 0 40px var(--glow-color), inset 0 1px 0 rgba(255,255,255,0.1);
-    transform: translateY(-4px) scale(1.005);
-  }
-  .liquid-glass:hover::before { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); }
-  .liquid-glass:hover::after { opacity: 1.5; }
-
-  .glow-text { position: relative; display: inline-block; transition: text-shadow 0.4s var(--ease-in-out); }
-  .glow-text:hover { text-shadow: 0 0 10px var(--glow-color), 0 0 30px var(--glow-color), 0 0 60px var(--glow-color), 0 0 100px rgba(255, 122, 0, 0.2); }
-
-  /* Navbar */
-  nav {
-    position: fixed; top: 0; left: 0; width: 100%; padding: 16px 40px;
-    z-index: 100; display: flex; justify-content: space-between; align-items: center;
-    background: rgba(10, 5, 20, 0.4);
-    backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    opacity: 0; transform: translateY(-20px);
-    animation: fadeInDown 0.6s var(--ease-in-out) 2.2s forwards;
-  }
-  nav::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(192, 132, 252, 0.4), rgba(255, 77, 109, 0.3), transparent); }
-  @keyframes fadeInDown { to { opacity: 1; transform: translateY(0); } }
-
-  .nav-logo { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.05em; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; }
-  .nav-logo::after { content: 'CIDSTECH'; position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: blur(8px); opacity: 0.6; pointer-events: none; animation: glowPulse 3s ease-in-out infinite; }
-  @keyframes glowPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
-
-  .nav-links { display: flex; gap: 30px; list-style: none; }
-  .nav-links a { color: rgba(240, 240, 245, 0.6); text-decoration: none; font-size: 0.9rem; font-weight: 400; transition: all 0.3s var(--ease-in-out); display: inline-block; }
-  .nav-links a:hover { color: #fff; transform: translateY(-2px); text-shadow: 0 0 20px rgba(192, 132, 252, 0.6), 0 0 40px rgba(123, 47, 247, 0.4); }
-
-  /* Hero */
-  .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 40px 80px; position: relative; overflow: hidden; }
-  .hero::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(192, 132, 252, 0.12), transparent 60%); animation: heroGlow 6s ease-in-out infinite; pointer-events: none; }
-  @keyframes heroGlow { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; } }
-  .hero-inner { max-width: 900px; text-align: center; position: relative; z-index: 1; }
-  .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 50px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.85rem; color: rgba(240, 240, 245, 0.7); margin-bottom: 30px; opacity: 0; transform: translateY(20px); animation: fadeInUp 0.6s var(--ease-in-out) 2.4s forwards; }
-  .hero-badge .dot { width: 8px; height: 8px; background: #30d158; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 8px #30d158; } 50% { opacity: 0.4; box-shadow: 0 0 2px #30d158; } }
-  @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-  .hero-title { font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 24px; opacity: 0; transform: translateY(30px); animation: heroTitleIn 1s var(--ease-out-expo) 2.6s forwards; }
-  @keyframes heroTitleIn { to { opacity: 1; transform: translateY(0) scale(1); } }
-  .hero-title .gradient-text { background: linear-gradient(135deg, #c084fc 0%, #7b2ff7 25%, #ff4d6d 50%, #ff9500 75%, #c084fc 100%); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: gradientShift 6s ease-in-out infinite; position: relative; display: inline-block; }
-  .hero-title .gradient-text::after { content: 'Cidstech'; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: blur(15px); opacity: 0.7; pointer-events: none; z-index: -1; animation: glowPulse 4s ease-in-out infinite; }
-  @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-  .hero-subtitle { font-size: clamp(1rem, 2.5vw, 1.25rem); color: rgba(240, 240, 245, 0.5); max-width: 600px; margin: 0 auto 40px; line-height: 1.7; opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s var(--ease-in-out) 2.8s forwards; }
-  .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s var(--ease-in-out) 3s forwards; }
-  .btn-primary, .btn-secondary { padding: 14px 32px; border-radius: 16px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.5s var(--ease-out-expo); border: none; font-family: 'Inter', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; position: relative; overflow: hidden; }
-  .btn-primary { background: linear-gradient(135deg, #7b2ff7, #ff4d6d); color: #fff; box-shadow: 0 4px 24px rgba(123, 47, 247, 0.3), 0 0 40px rgba(123, 47, 247, 0.1); }
-  .btn-primary::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent); opacity: 0; transition: opacity 0.4s var(--ease-in-out); }
-  .btn-primary:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 8px 40px rgba(123, 47, 247, 0.5), 0 0 60px rgba(123, 47, 247, 0.2); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-  .btn-primary:hover::before { opacity: 1; }
-  .btn-secondary { background: rgba(255, 255, 255, 0.06); color: #f0f0f5; border: 1px solid rgba(255, 255, 255, 0.12); backdrop-filter: blur(16px); }
-  .btn-secondary:hover { transform: translateY(-4px) scale(1.03); background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 30px rgba(192, 132, 252, 0.15); text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-  /* Stats */
-  .stats-bar { display: flex; justify-content: center; gap: 60px; padding: 60px 40px; flex-wrap: wrap; opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s var(--ease-in-out) 3.2s forwards; }
-  .stat-item { text-align: center; transition: transform 0.5s var(--ease-out-expo); }
-  .stat-item:hover { transform: translateY(-6px); }
-  .stat-number { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .stat-label { font-size: 0.85rem; color: rgba(240, 240, 245, 0.4); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
-
-  /* Sections */
-  .section { padding: 100px 40px; max-width: 1200px; margin: 0 auto; opacity: 0; transform: translateY(60px); filter: blur(8px); transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo), filter 0.9s var(--ease-out-expo); }
-  .section.visible { opacity: 1; transform: translateY(0); filter: blur(0); }
-  .section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: rgba(240, 240, 245, 0.3); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; }
-  .section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; margin-bottom: 50px; letter-spacing: -0.02em; }
-
-  /* Project Cards */
-  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
-  .project-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--glass-border);
-    border-radius: 24px; padding: 36px; cursor: pointer;
-    transition: all 0.6s var(--ease-out-expo);
-    position: relative; overflow: hidden; z-index: 1;
-  }
-  .project-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); pointer-events: none; }
-  .project-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(192, 132, 252, 0.15), inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .project-card.expanded { grid-column: 1 / -1; cursor: default; z-index: 10; border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(123, 47, 247, 0.15); }
-  .project-card .card-summary { transition: opacity 0.3s var(--ease-in-out), transform 0.3s var(--ease-in-out); }
-  .project-card.expanded .card-summary { opacity: 0; transform: translateY(-10px); pointer-events: none; position: absolute; height: 0; overflow: hidden; }
-  .project-card .card-detail { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.7s var(--ease-out-expo), opacity 0.5s var(--ease-in-out), transform 0.5s var(--ease-in-out); transform: translateY(20px); }
-  .project-card.expanded .card-detail { max-height: 800px; opacity: 1; transform: translateY(0); margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); }
-
-  .card-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.5rem; transition: all 0.6s var(--ease-out-expo); position: relative; }
-  .project-card:hover .card-icon { transform: scale(1.1) rotate(-5deg); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
-  .icon-android { background: linear-gradient(135deg, #34a853, #00c853); }
-  .icon-ios { background: linear-gradient(135deg, #ff4d6d, #ff7a00); }
-  .icon-social { background: linear-gradient(135deg, #ff4d6d, #7b2ff7); }
-  .icon-code { background: linear-gradient(135deg, #7b2ff7, #c084fc); }
-  .icon-meme { background: linear-gradient(135deg, #ff9500, #ff6b00); }
-  .card-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; background: rgba(255,255,255,0.05); color: rgba(240,240,245,0.5); margin-bottom: 16px; transition: all 0.4s var(--ease-in-out); }
-  .card-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; transition: all 0.4s var(--ease-in-out); }
-  .card-desc { font-size: 0.9rem; color: rgba(240, 240, 245, 0.4); line-height: 1.6; }
-  .card-arrow { position: absolute; bottom: 36px; right: 36px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; transition: all 0.5s var(--ease-out-expo); }
-  .card-arrow svg { width: 16px; height: 16px; stroke: rgba(240,240,245,0.3); transition: all 0.5s var(--ease-out-expo); }
-  .project-card:hover .card-arrow { background: rgba(255,255,255,0.1); transform: translateX(5px); }
-  .project-card:hover .card-arrow svg { stroke: #fff; }
-  .project-card.expanded .card-arrow { transform: rotate(135deg) translateX(0); }
-
-  .detail-body { font-size: 0.95rem; line-height: 1.8; color: rgba(240,240,245,0.6); }
-  .detail-body p { margin-bottom: 14px; }
-  .detail-tech { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-  .detail-tech span { padding: 5px 14px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: rgba(240,240,245,0.5); transition: all 0.3s var(--ease-in-out); }
-  .detail-tech span:hover { background: rgba(123, 47, 247, 0.15); border-color: rgba(123, 47, 247, 0.3); text-shadow: 0 0 10px rgba(123, 47, 247, 0.4); }
-
-  /* Social */
-  .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
-  .social-card { display: flex; align-items: center; gap: 20px; padding: 28px 32px; border-radius: 20px; background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); cursor: pointer; transition: all 0.5s var(--ease-out-expo); text-decoration: none; color: inherit; position: relative; overflow: hidden; }
-  .social-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent); }
-  .social-card:hover { transform: translateY(-6px) scale(1.02); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); box-shadow: 0 15px 40px rgba(0,0,0,0.3), 0 0 30px rgba(123, 47, 247, 0.1); text-shadow: 0 0 12px rgba(192, 132, 252, 0.3); }
-  .social-card:hover .social-info h4 { text-shadow: 0 0 15px rgba(255,255,255,0.4); }
-  .social-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transition: transform 0.5s var(--ease-out-expo); flex-shrink: 0; }
-  .social-card:hover .social-icon { transform: scale(1.15); }
-  .social-info h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; transition: text-shadow 0.4s var(--ease-in-out); }
-  .social-info p { font-size: 0.8rem; color: rgba(240,240,245,0.4); }
-  .tiktok-icon { background: linear-gradient(135deg, #25f4ee, #fe2c55); }
-  .youtube-icon { background: linear-gradient(135deg, #ff0000, #ff4444); }
-  .discord-icon { background: linear-gradient(135deg, #5865f2, #7289da); }
-  .telegram-icon { background: linear-gradient(135deg, #0088cc, #34a0d0); }
-  .reddit-icon { background: linear-gradient(135deg, #ff4500, #ff6633); }
-  .github-icon { background: linear-gradient(135deg, #c084fc, #7b2ff7); }
-
-  /* Timeline */
-  .timeline { position: relative; max-width: 700px; margin: 0 auto; padding-left: 40px; }
-  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #c084fc, #7b2ff7, #ff4d6d, #ff9500); border-radius: 2px; }
-  .timeline-item { position: relative; padding-bottom: 50px; opacity: 0; transform: translateX(30px); filter: blur(4px); transition: all 0.7s var(--ease-out-expo); }
-  .timeline-item.visible { opacity: 1; transform: translateX(0); filter: blur(0); }
-  .timeline-item::before { content: ''; position: absolute; left: -36px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: #0a0514; border: 3px solid #c084fc; z-index: 1; transition: all 0.4s var(--ease-in-out); }
-  .timeline-item:hover::before { background: #c084fc; box-shadow: 0 0 20px rgba(192, 132, 252, 0.6), 0 0 40px rgba(123, 47, 247, 0.3); }
-  .timeline-item:hover .timeline-title { text-shadow: 0 0 15px rgba(192, 132, 252, 0.4); }
-  .timeline-year { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: rgba(240,240,245,0.3); margin-bottom: 6px; }
-  .timeline-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 6px; transition: text-shadow 0.4s var(--ease-in-out); }
-  .timeline-desc { font-size: 0.9rem; color: rgba(240,240,245,0.4); line-height: 1.6; }
-
-  /* Footer */
-  footer { padding: 60px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); margin-top: 60px; }
-  footer p { font-size: 0.85rem; color: rgba(240,240,245,0.3); }
-  footer .footer-logo { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1rem; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; position: relative; display: inline-block; }
-  footer .footer-logo::after { content: 'CIDSTECH'; position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(135deg, #c084fc, #7b2ff7, #ff4d6d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: blur(10px); opacity: 0.5; pointer-events: none; animation: glowPulse 3s ease-in-out infinite; }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(123, 47, 247, 0.3); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(192, 132, 252, 0.5); }
-
-  @media (max-width: 768px) {
-    nav { padding: 14px 20px; } .nav-links { gap: 16px; } .nav-links a { font-size: 0.8rem; }
-    .hero { padding: 100px 20px 60px; } .section { padding: 60px 20px; }
-    .projects-grid { grid-template-columns: 1fr; } .social-grid { grid-template-columns: 1fr; }
-    .stats-bar { gap: 30px; } .about-content { grid-template-columns: 1fr; gap: 40px; }
-  }
-
-  .glow-cursor { position: fixed; width: 350px; height: 350px; border-radius: 50%; pointer-events: none; z-index: 1; background: radial-gradient(circle, rgba(123, 47, 247, 0.08), transparent 70%); transform: translate(-50%, -50%); transition: opacity 0.3s; }
-
-  .about-content { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-  .about-text p { color: rgba(240,240,245,0.5); line-height: 1.8; margin-bottom: 16px; font-size: 0.95rem; }
-  .about-visual { position: relative; display: flex; align-items: center; justify-content: center; }
-  .code-block { background: rgba(0,0,0,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 28px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.8; width: 100%; overflow-x: auto; position: relative; }
-  .code-block::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(192, 132, 252, 0.2), transparent); }
-  .code-keyword { color: #ff79c6; } .code-string { color: #50fa7b; }
-  .code-comment { color: rgba(240,240,245,0.25); } .code-func { color: #8be9fd; } .code-var { color: #f1fa8c; }
-
-  /* Settings */
-  #settings-toggle { position: fixed; bottom: 24px; right: 24px; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.06); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 500; transition: all 0.4s var(--ease-in-out); font-size: 1.3rem; color: #f0f0f5; }
-  #settings-toggle:hover { background: rgba(255,255,255,0.12); transform: scale(1.1) rotate(45deg); box-shadow: 0 0 30px rgba(123, 47, 247, 0.3); }
-  #settings-panel { position: fixed; top: 0; right: -440px; width: 420px; max-width: 92vw; height: 100%; background: rgba(12, 8, 28, 0.96); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border-left: 1px solid rgba(255,255,255,0.08); z-index: 500; padding: 30px; overflow-y: auto; transition: right 0.5s var(--ease-out-expo); box-shadow: -10px 0 60px rgba(0,0,0,0.5); }
-  #settings-panel.open { right: 0; }
-  .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .settings-header h3 { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.1rem; background: linear-gradient(135deg, #c084fc, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .settings-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.4s var(--ease-in-out); color: #f0f0f5; font-size: 1rem; }
-  .settings-close:hover { background: rgba(255,255,255,0.12); transform: rotate(90deg) scale(1.1); }
-  .settings-group { margin-bottom: 24px; }
-  .settings-group label { display: block; font-size: 0.85rem; font-weight: 600; color: rgba(240,240,245,0.6); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .settings-group input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; appearance: none; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; }
-  .settings-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #c084fc, #7b2ff7); cursor: pointer; box-shadow: 0 0 10px rgba(123, 47, 247, 0.5); transition: transform 0.3s var(--ease-in-out); }
-  .settings-group input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
-  .settings-group input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 10px; cursor: pointer; background: transparent; padding: 0; }
-  .settings-group input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
-  .settings-group input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; }
-  .range-value { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: rgba(240,240,245,0.4); margin-top: 4px; }
-  .settings-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 20px 0; }
-  .settings-reset { width: 100%; padding: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: rgba(240,240,245,0.6); font-family: 'Inter', sans-serif; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-in-out); backdrop-filter: blur(10px); }
-  .settings-reset:hover { background: rgba(255,255,255,0.08); color: #f0f0f5; }
-</style>
-</head>
-<body>
-
-<div id="loading-screen">
-  <div class="loader-text" id="loader-text"></div>
-  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
-</div>
-
-<canvas id="webgl-canvas"></canvas>
-<div id="noise-overlay"></div>
-<div class="glow-cursor" id="glow-cursor"></div>
-<div id="settings-toggle" title="Settings">⚙</div>
-
-<div id="settings-panel">
-  <div class="settings-header">
-    <h3>⚡ Settings</h3>
-    <button class="settings-close" id="settings-close">✕</button>
-  </div>
-  <div class="settings-group">
-    <label>Animation Speed</label>
-    <input type="range" id="anim-speed" min="0.2" max="2" step="0.1" value="0.7">
-    <div class="range-value" id="anim-speed-val">0.7s</div>
-  </div>
-  <div class="settings-group">
-    <label>Gaussian Blur (on expand)</label>
-    <input type="range" id="gaussian-blur" min="0" max="30" step="1" value="12">
-    <div class="range-value" id="gaussian-blur-val">12px</div>
-  </div>
-  <div class="settings-divider"></div>
-  <div class="settings-group">
-    <label>Mesh Animation Speed</label>
-    <input type="range" id="mesh-speed" min="0.1" max="2" step="0.05" value="0.35">
-    <div class="range-value" id="mesh-speed-val">0.35</div>
-  </div>
-  <div class="settings-group">
-    <label>Color 1 (Purple)</label>
-    <input type="color" id="mc1" value="#7b2ff7">
-  </div>
-  <div class="settings-group">
-    <label>Color 2 (Red)</label>
-    <input type="color" id="mc2" value="#ff4d6d">
-  </div>
-  <div class="settings-group">
-    <label>Color 3 (Magenta)</label>
-    <input type="color" id="mc3" value="#c084fc">
-  </div>
-  <div class="settings-group">
-    <label>Color 4 (Orange)</label>
-    <input type="color" id="mc4" value="#ff9500">
-  </div>
-  <div class="settings-group">
-    <label>Color 5 (Teal)</label>
-    <input type="color" id="mc5" value="#25f4ee">
-  </div>
-  <div class="settings-divider"></div>
-  <button class="settings-reset" id="settings-reset">Reset to Defaults</button>
-</div>
-
-<div id="main-content">
-  <nav>
-    <div class="nav-logo">CIDSTECH</div>
-    <ul class="nav-links">
-      <li><a href="#projects" class="glow-text">Projects</a></li>
-      <li><a href="#journey" class="glow-text">Journey</a></li>
-      <li><a href="#social" class="glow-text">Social</a></li>
-      <li><a href="#about" class="glow-text">About</a></li>
-    </ul>
-  </nav>
-
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-badge"><span class="dot"></span> Available for collaborations</div>
-      <h1 class="hero-title">Hei, I'm <span class="gradient-text">Cidstech</span></h1>
-      <p class="hero-subtitle">Tech enthusiast, Techtoker, and open-source developer. From AOSP ROMs for legacy devices to iOS jailbreaks — I breathe new life into forgotten hardware.</p>
-      <div class="hero-cta">
-        <a href="#projects" class="btn-primary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v18M18 3v18M6 8h12M6 16h12M6 12h12"/></svg> View Projects</a>
-        <a href="#social" class="btn-secondary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 7.5v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5 0-.28-.03-.56-.08-.83A7.72 7.72 0 0023 3z"/></svg> Follow Me</a>
-      </div>
-    </div>
-  </section>
-
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-number" data-count="6" data-suffix="K+">0</div><div class="stat-label">Followers</div></div>
-    <div class="stat-item"><div class="stat-number" data-count="2" data-suffix="+">0</div><div class="stat-label">Years Coding</div></div>
-    <div class="stat-item"><div class="stat-number" data-count="15" data-suffix="M+">0</div><div class="stat-label">Video Views</div></div>
-  </div>
-
-  <section class="section" id="projects">
-    <div class="section-label">// Projects</div>
-    <h2 class="section-title">What I've Built</h2>
-    <div class="projects-grid" id="projects-grid">
-      <div class="project-card" data-project="nexus10">
-        <div class="card-summary"><div class="card-icon icon-android">🤖</div><span class="card-tag">AOSP / Android</span><h3 class="card-title glow-text">AOSP ROMs for Nexus 10</h3><p class="card-desc">Successfully built Android 4.2.2 from AOSP source code for the Google Nexus 10.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>In 2026, I successfully built Android 4.2.2 from AOSP source code for my Google Nexus 10. This was a major milestone in my journey through custom ROM development.</p><p>The build process involved setting up the complete AOSP build environment, configuring the device tree for the Nexus 10 (codenamed "manta"), resolving build dependencies, and finally compiling the entire Android system from source.</p><p>Successfully booting the ROM on the device was an incredible feeling — proving that even after all these years, the Nexus 10 could still run a clean, stock Android experience built from the ground up.</p></div><div class="detail-tech"><span>AOSP</span><span>Android 4.2.2</span><span>Device Tree</span><span>Manta</span><span>Build System</span><span>Git</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-
-      <div class="project-card" data-project="ipod-touch">
-        <div class="card-summary"><div class="card-icon icon-ios">🍎</div><span class="card-tag">Jailbreak / iOS</span><h3 class="card-title glow-text">iOS 7 Multitouch Fix</h3><p class="card-desc">Fixed multitouch in an iOS 7 port for the iPod touch 4th Generation by patching the multitouch drivers.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>In 2025, I fixed multitouch in an iOS 7 port for the iPod touch 4th generation. The iPod touch 4G was a beloved device in the jailbreak community, and getting iOS 7 to work on it was already a challenge — but without multitouch, it was nearly unusable.</p><p>I fixed the issue by patching the multitouch drivers to work on the 4th generation iPod touch. This required diving deep into the iOS driver stack, understanding how the digitizer hardware communicates with the OS, and writing patches that properly mapped touch input events to the correct hardware interface.</p><p>This fix was a significant contribution to the legacy iOS jailbreaking community, allowing thousands of users to actually use iOS 7 on their iPod touch 4G with full multitouch support.</p></div><div class="detail-tech"><span>iOS 7</span><span>Jailbreak</span><span>Driver Patching</span><span>Multitouch</span><span>Reverse Engineering</span><span>C</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-
-      <div class="project-card" data-project="techtok">
-        <div class="card-summary"><div class="card-icon icon-social">📱</div><span class="card-tag">Content Creation</span><h3 class="card-title glow-text">TechTok & Tech Shorts</h3><p class="card-desc">Creating viral tech content on TikTok and YouTube Shorts.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>In 2025, I started blowing up on YouTube Shorts and TikTok with my tech content. What started as sharing my tech experiments quickly turned into a rapidly growing audience of tech enthusiasts.</p><p>I create short-form tech content covering everything from ROM development tutorials to jailbreak guides, retro tech showcases, and behind-the-scenes looks at mobile development.</p><p>With 15M+ video views and a growing community, I've become a recognized voice in the tech development and jailbreak communities.</p></div><div class="detail-tech"><span>TikTok</span><span>YouTube Shorts</span><span>Content Strategy</span><span>Community Building</span><span>Tech Education</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-
-      <div class="project-card" data-project="uttm-debian">
-        <div class="card-summary"><div class="card-icon icon-code">💻</div><span class="card-tag">Virtualization</span><h3 class="card-title glow-text">KDE Debian on M5 iPad Pro</h3><p class="card-desc">Successfully booted KDE Debian on an M5 iPad Pro using UTM with JIT.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>In 2026, I successfully booted KDE Debian on my M5 iPad Pro using UTM with JIT enabled. This achievement pushed the boundaries of what mobile virtualization can accomplish.</p><p>UTM allows running virtual machines on iOS devices, and enabling JIT (Just-In-Time) compilation significantly improves performance. Booting a full desktop Linux distribution with a complete KDE desktop environment on an iPad is a testament to the power of modern Apple Silicon chips.</p><p>This project involved configuring UTM, setting up the virtual machine, installing KDE Debian, and optimizing performance with JIT to get a smooth, usable Linux desktop experience on an iPad Pro.</p></div><div class="detail-tech"><span>UTM</span><span>JIT</span><span>KDE</span><span>Debian</span><span>iPad Pro</span><span>Virtualization</span><span>Apple Silicon</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-
-      <div class="project-card" data-project="meme">
-        <div class="card-summary"><div class="card-icon icon-meme">😂</div><span class="card-tag">Viral Meme</span><h3 class="card-title glow-text">"fun fact: this ipad is older than u"</h3><p class="card-desc">A somewhat viral meme that resonated worldwide, bringing humor to retro tech culture.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>In 2025, I made the meme "fun fact: this ipad is older than u" — and I never expected it to become a meme at all. It was just something I posted for fun.</p><p>The meme was actually made viral by väinöreini, who took the original concept and ran with it. The meme consists of a screen recording of the original video, with someone commenting something like "no it's not sybau" using the green skull keyboard app, adding a whole new layer of humor to it.</p><p>What surprised me the most was that it wasn't only popular in the tech community. The meme spread far beyond my usual audience, reaching people who had no interest in jailbreaking or custom ROMs. It became a cultural moment that transcended its origins in niche tech circles.</p></div><div class="detail-tech"><span>Memes</span><span>Viral Content</span><span>Tech Culture</span><span>Social Media</span><span>Community</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-
-      <div class="project-card" data-project="legacy">
-        <div class="card-summary"><div class="card-icon" style="background: linear-gradient(135deg, #ff9500, #ff6b00);">🔧</div><span class="card-tag">Legacy Support</span><h3 class="card-title glow-text">Legacy Device Revival</h3><p class="card-desc">From installing Windows 11 on a Poco X3 Pro to booting native Fedora on the same device.</p></div>
-        <div class="card-detail"><div class="detail-body"><p>From installing Windows 11 on a Poco X3 Pro smartphone to booting native Fedora Workstation on the same device with a mainline Linux kernel — I've always been dedicated to keeping old hardware alive and pushing it beyond its intended limits.</p><p>I've experimented with GSI ports on my Redmi K20 Pro, tried AOSP builds on my Samsung Galaxy S2, and contributed to the AppleInternal community with various fixes and improvements.</p><p>This philosophy — that "old" doesn't mean "obsolete" — has been the cornerstone of everything I do in the tech space.</p></div><div class="detail-tech"><span>Linux</span><span>Android</span><span>Hackintosh</span><span>Windows 11</span><span>Mainline Kernel</span><span>GSI</span><span>Open Source</span></div></div>
-        <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="journey">
-    <div class="section-label">// Journey</div>
-    <h2 class="section-title">My Tech Journey</h2>
-    <div class="timeline">
-      <div class="timeline-item"><div class="timeline-year">2020</div><div class="timeline-title glow-text">First Custom ROM Flash</div><div class="timeline-desc">Flashed my first custom ROM — the spark that ignited my passion for tech.</div></div>
-      <div class="timeline-item"><div class="timeline-year">2021</div><div class="timeline-title glow-text">Virtual Machine Experimentation</div><div class="timeline-desc">Began experimenting with virtual machines, running multiple operating systems simultaneously.</div></div>
-      <div class="timeline-item"><div class="timeline-year">2022</div><div class="timeline-title glow-text">Hackintosh & Linux Distros</div><div class="timeline-desc">Started hackintoshing and trying out several Linux distros — Ubuntu and Debian were the first.</div></div>
-      <div class="timeline-item"><div class="timeline-year">2023</div><div class="timeline-title glow-text">Daily Driving Linux & Major Milestones</div><div class="timeline-desc">Daily drove Linux, installed Windows 11 on a Poco X3 Pro, achieved a successful hackintosh build, got my M2 Mac Mini, and downgraded an iPhone 3GS to 3.1.2 using Cydia SHSH blobs.</div></div>
-      <div class="timeline-item"><div class="timeline-year">2024</div><div class="timeline-title glow-text">Wallpaper Contest, Arch Linux & GSI Ports</div><div class="timeline-desc">Made a wallpaper for the Ubuntu 24.04 contest, installed Arch Linux, and started GSI ports on my Redmi K20 Pro.</div></div>
-      <div class="timeline-item"><div class="timeline-year">2025</div><div class="timeline-title glow-text">Viral Growth & Major Contributions</div><div class="timeline-desc">Fixed multitouch in an iOS 7 port for the iPod touch 4th generation, started blowing up on YouTube Shorts and TikTok, began contributing to the AppleInternal community, booted native Fedora on my Poco X3 Pro with a mainline Linux kernel, began AOSP builds on my Samsung Galaxy S2, and made the meme "fun fact: this ipad is older than u".</div></div>
-      <div class="timeline-item"><div class="timeline-year">2026</div><div class="timeline-title glow-text">AOSP Builds & UTM Virtualization</div><div class="timeline-desc">Built Android 4.2.2 from AOSP source code for my Google Nexus 10, and booted KDE Debian on my M5 iPad Pro using UTM with JIT.</div></div>
-    </div>
-  </section>
-
-  <section class="section" id="social">
-    <div class="section-label">// Social</div>
-    <h2 class="section-title">Find Me Online</h2>
-    <div class="social-grid">
-      <a class="social-card" href="#"><div class="social-icon tiktok-icon">♪</div><div class="social-info"><h4 class="glow-text">TikTok</h4><p>@cidstech • Tech content & dev logs</p></div></a>
-      <a class="social-card" href="#"><div class="social-icon youtube-icon">▶</div><div class="social-info"><h4 class="glow-text">YouTube</h4><p>Cidstech • Tech Shorts</p></div></a>
-      <a class="social-card" href="#"><div class="social-icon discord-icon">💬</div><div class="social-info"><h4 class="glow-text">Discord</h4><p>@cidstech • DMs Open</p></div></a>
-      <a class="social-card" href="#"><div class="social-icon telegram-icon">✈️</div><div class="social-info"><h4 class="glow-text">Telegram</h4><p>@cidstech • Feel Free to Ask Me Anything There</p></div></a>
-      <a class="social-card" href="#"><div class="social-icon reddit-icon">🤖</div><div class="social-info"><h4 class="glow-text">Reddit</h4><p>u/GoldenWubbabunga • Active in Tech-Related Subs</p></div></a>
-      <a class="social-card" href="#"><div class="social-icon github-icon">⌨</div><div class="social-info"><h4 class="glow-text">GitHub</h4><p>cidstech • Open source projects</p></div></a>
-    </div>
-  </section>
-
-  <section class="section" id="about">
-    <div class="section-label">// About</div>
-    <h2 class="section-title">About Me</h2>
-    <div class="about-content">
-      <div class="about-text">
-        <p>I'm Cidstech — a tech enthusiast who believes no device should be left behind. My journey started with flashing my first custom ROM in 2020 and has evolved into a passion for pushing hardware to its absolute limits.</p>
-        <p>From building AOSP ROMs for the Google Nexus 10 to fixing multitouch in an iOS 7 port for the iPod touch 4th generation, to booting KDE Debian on an M5 iPad Pro — I've always been obsessed with making old tech do new things.</p>
-        <p>Now, I'm sharing that journey with thousands through TechTok content and Tech Shorts.</p>
-      </div>
-      <div class="about-visual">
-        <div class="code-block">
-          <span class="code-comment">// whoami.sh</span><br>
-          <span class="code-keyword">const</span> <span class="code-var">developer</span> = {<br>
-          &nbsp;&nbsp;name: <span class="code-string">"Cidstech"</span>,<br>
-          &nbsp;&nbsp;role: <span class="code-string">"TechTok Creator"</span>,<br>
-          &nbsp;&nbsp;focus: [<span class="code-string">"AOSP"</span>, <span class="code-string">"Jailbreak"</span>,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"Legacy Revival"</span>],<br>
-          &nbsp;&nbsp;<span class="code-func">build</span>(device) {<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> device.<span class="code-func">revive</span>();<br>
-          &nbsp;&nbsp;}<br>
-          };
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="footer-logo">CIDSTECH</div>
-    <p>Built with passion for legacy tech • © 2026 Cidstech</p>
-  </footer>
-</div>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
 
 <script>
-  // ===== WEBGL ANIMATED MESH GRADIENT =====
-  const canvas = document.getElementById('webgl-canvas');
-  let gl, program;
-  let u_time, u_resolution;
-  let timeVal = 0;
-  let meshSpeed = 0.35;
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        },
+        colors: {
+          sky: {
+            450: '#00a3ff',
+            550: '#0082f6',
+          },
+          glass: {
+            bg: 'rgba(15, 23, 42, 0.45)',
+            card: 'rgba(255, 255, 255, 0.05)',
+            border: 'rgba(255, 255, 255, 0.12)',
+            hover: 'rgba(255, 255, 255, 0.09)',
+          }
+        },
+        boxShadow: {
+          'sky-glow': '0 0 35px -5px rgba(56, 189, 248, 0.3)',
+          'glass-card': '0 12px 36px -10px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.12)',
+          'glass-hover': '0 20px 48px -12px rgba(14, 165, 233, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
+        },
+        transitionTimingFunction: {
+          'spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          'ios': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        }
+      }
+    }
+  }
+</script>
 
-  // Default colors: purple, red, magenta, orange, teal
-  let meshColors = [
-    [0.482, 0.184, 0.969], // #7b2ff7
-    [1.0, 0.302, 0.427],   // #ff4d6d
-    [0.753, 0.518, 0.988], // #c084fc
-    [1.0, 0.584, 0.0],     // #ff9500
-    [0.145, 0.957, 0.933]  // #25f4ee
-  ];
+<style>
+  /* Custom Cursor (Desktop Only) */
+  @media (hover: hover) and (pointer: fine) {
+    body { cursor: default; }
+    a, button, [role="button"] { cursor: pointer; }
+    
+    #cursor-dot {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 8px; height: 8px;
+      background-color: #38bdf8;
+      border-radius: 50%;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+      box-shadow: 0 0 10px #38bdf8;
+    }
+    
+    #cursor-ring {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.06);
+      border-radius: 50%;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.15s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.25s var(--spring), height 0.25s var(--spring), border-color 0.2s ease;
+      backdrop-filter: blur(2px);
+    }
 
-  function initWebGL() {
-    gl = canvas.getContext('webgl', { antialias: true, alpha: false, preserveDrawingBuffer: false });
-    if (!gl) { console.error('WebGL not supported'); return; }
+    body.hovering-link #cursor-ring {
+      width: 58px;
+      height: 58px;
+      border-color: rgba(56, 189, 248, 0.9);
+      background: rgba(56, 189, 248, 0.12);
+    }
+    body.hovering-link #cursor-dot {
+      transform: translate(-50%, -50%) scale(1.5);
+      background-color: #7dd3fc;
+    }
+  }
 
-    function resize() {
+  /* Glass Base Styles */
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.4s ease, 
+                border-color 0.3s ease, 
+                background 0.3s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 20px 45px -10px rgba(14, 165, 233, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Text Gradients */
+  .text-gradient-sky {
+    background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 50%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-glow {
+    background: linear-gradient(135deg, #ffffff 0%, #7dd3fc 50%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Scroll Reveal State */
+  .reveal-item {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+    filter: blur(8px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity, filter;
+  }
+
+  .reveal-item.revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  /* Tilt Container 3D Effect */
+  .tilt-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  /* Hide scrollbar for clean UI */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-sky-500 selection:text-white">
+
+<!-- Custom Cursor Elements (Desktop Only) -->
+<div id="cursor-dot" class="hidden md:block"></div>
+<div id="cursor-ring" class="hidden md:block"></div>
+
+<!-- Background Animated Sky WebGL Mesh Canvas -->
+<canvas id="webgl-sky-canvas" class="fixed inset-0 w-full h-full z-0 pointer-events-none opacity-90"></canvas>
+
+<!-- Atmospheric Ambient Sky Overlay -->
+<div class="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/80"></div>
+
+<!-- Main App Wrapper -->
+<div class="relative z-10 flex flex-col min-h-screen">
+
+  <!-- DESKTOP TOP FLOATING NAVBAR -->
+  <header class="hidden md:block fixed top-5 inset-x-0 z-50 max-w-4xl mx-auto px-4">
+    <nav class="glass-panel rounded-full px-6 py-3 flex items-center justify-between shadow-2xl transition-all duration-300">
+      <a href="#" class="group flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-cyan-300 flex items-center justify-center text-slate-950 font-black text-sm shadow-md shadow-sky-500/30 group-hover:scale-105 transition-transform duration-300">
+          C
+        </div>
+        <span class="font-extrabold text-base tracking-tight text-white group-hover:text-sky-300 transition-colors">CIDSTECH</span>
+      </a>
+
+      <div class="flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#projects" class="hover:text-sky-300 transition-colors py-1">Projects</a>
+        <a href="#vault" class="hover:text-sky-300 transition-colors py-1">100+ Vault</a>
+        <a href="#wallpapers" class="hover:text-sky-300 transition-colors py-1">Wallpapers</a>
+        <a href="#journey" class="hover:text-sky-300 transition-colors py-1">Journey</a>
+        <a href="#socials" class="hover:text-sky-300 transition-colors py-1">Socials</a>
+      </div>
+
+      <a href="https://t.me/cidstech" target="_blank" rel="noopener noreferrer" 
+         class="px-4 py-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 text-slate-950 font-semibold text-xs tracking-wide shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+        <span>Message Me</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- MOBILE BOTTOM FLOATING DOCK -->
+  <div class="md:hidden fixed bottom-4 inset-x-4 z-50 max-w-md mx-auto">
+    <nav class="glass-panel rounded-2xl px-3 py-2.5 flex items-center justify-around shadow-2xl backdrop-blur-3xl border-white/20">
+      <a href="#projects" class="flex flex-col items-center gap-1 text-slate-400 hover:text-sky-300 active:scale-90 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        <span class="text-[10px] font-medium">Projects</span>
+      </a>
+      <a href="#vault" class="flex flex-col items-center gap-1 text-slate-400 hover:text-sky-300 active:scale-90 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        <span class="text-[10px] font-medium">Vault</span>
+      </a>
+      <a href="#wallpapers" class="flex flex-col items-center gap-1 text-slate-400 hover:text-sky-300 active:scale-90 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="text-[10px] font-medium">Art</span>
+      </a>
+      <a href="#journey" class="flex flex-col items-center gap-1 text-slate-400 hover:text-sky-300 active:scale-90 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-[10px] font-medium">Journey</span>
+      </a>
+      <a href="#socials" class="flex flex-col items-center gap-1 text-slate-400 hover:text-sky-300 active:scale-90 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+        <span class="text-[10px] font-medium">Socials</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- HERO SECTION -->
+  <section class="relative min-h-[90vh] pt-28 md:pt-36 pb-16 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto text-center space-y-8">
+      
+      <!-- Status Badge -->
+      <div class="reveal-item inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel border-sky-400/30 text-xs sm:text-sm font-medium text-slate-200 shadow-sky-glow">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400"></span>
+        </span>
+        <span>Open Source Developer & Content Creator</span>
+      </div>
+
+      <!-- Main Title -->
+      <div class="reveal-item space-y-4">
+        <h1 class="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white leading-[1.08]">
+          Hei, I'm <span class="text-gradient-sky drop-shadow-sm">Cidstech</span>
+        </h1>
+        <p class="text-lg sm:text-2xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+          Breathing new life into forgotten hardware, building custom ROMs, patching legacy kernels, and reaching <span class="text-sky-300 font-medium">millions</span> worldwide.
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="reveal-item flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+        <a href="#projects" 
+           class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-400 to-cyan-400 text-slate-950 font-bold text-sm tracking-wide shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2.5 group">
+          <span>Explore Projects</span>
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+
+        <a href="#vault" 
+           class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card text-white font-semibold text-sm tracking-wide hover:bg-white/10 hover:border-white/20 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2.5">
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          <span>View 100+ Devices Vault</span>
+        </a>
+      </div>
+
+      <!-- Live Metrics Bar -->
+      <div class="reveal-item pt-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          
+          <div class="glass-card p-5 rounded-2xl text-center space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-gradient-sky counter-val" data-target="20000" data-suffix="K+">0</div>
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Followers</div>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl text-center space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-gradient-sky counter-val" data-target="3" data-suffix="+ Years">0</div>
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Coding</div>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl text-center space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-gradient-sky counter-val" data-target="30000000" data-suffix="M+">0</div>
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Video Views</div>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl text-center space-y-1">
+            <div class="text-3xl sm:text-4xl font-extrabold text-gradient-sky counter-val" data-target="100" data-suffix="+">0</div>
+            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Devices Collected</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- FEATURED PROJECTS SECTION -->
+  <section id="projects" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    
+    <div class="reveal-item text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Featured Engineering & Hacks</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Reverse engineering legacy OS drivers, compiling custom kernel trees, and virtualization on Apple Silicon.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Card 1: Nexus 10 AOSP -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('nexus10')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 group-hover:bg-sky-500 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 text-[11px] font-semibold mb-2">AOSP / Legacy Android</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-sky-300 transition-colors">AOSP ROMs for Nexus 10</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Built stock Android 4.2.2 Jelly Bean directly from AOSP source code for the Google Nexus 10 ("manta").</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Device: Google Nexus 10</span>
+          <span class="text-sky-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 2: iOS 7 Multitouch Fix -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('ipodtouch')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-[11px] font-semibold mb-2">iOS / Driver Patching</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">iOS 7 Multitouch Fix</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Patched legacy touch digitizer drivers for iPod touch 4th Gen running ported iOS 7, restoring multi-finger gestures.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Device: iPod touch 4G</span>
+          <span class="text-cyan-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 3: UTM KDE Debian -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('ipadutm')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 group-hover:bg-sky-500 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 text-[11px] font-semibold mb-2">Virtualization / JIT</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-sky-300 transition-colors">KDE Debian on M5 iPad Pro</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Booted full desktop Linux KDE Debian via UTM VM with Hypervisor JIT compilation enabled on modern Apple Silicon.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Device: iPad Pro (Apple Silicon)</span>
+          <span class="text-sky-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Poco X3 Pro Fedora & Win11 -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('pocox3')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-[11px] font-semibold mb-2">Mainline Kernel / Windows ARM</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">Poco X3 Pro Linux & Win11</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Booted native Fedora Workstation with mainline Linux kernel and Windows 11 ARM on Snapdragon mobile hardware.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Device: Poco X3 Pro</span>
+          <span class="text-cyan-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 5: Viral iPad Meme -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('ipadmeme')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center text-sky-400 group-hover:bg-sky-500 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 text-[11px] font-semibold mb-2">Viral Culture / Media</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-sky-300 transition-colors">"iPad Older Than U" Meme</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Created the iconic original tech video that spawned millions of views and derivative memes across social platforms.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Reach: Millions of views</span>
+          <span class="text-sky-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 6: SHSH Blob Downgrades & Legacy iOS -->
+      <div class="reveal-item glass-card p-6 rounded-3xl flex flex-col justify-between space-y-6 cursor-pointer group" onclick="openProjectModal('shsh')">
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all duration-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-[11px] font-semibold mb-2">SHSH / Firmware Downgrade</span>
+            <h3 class="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">iPhone 3GS SHSH Blob Downgrade</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Successfully downgraded an iPhone 3GS back to original iPhone OS 3.1.2 using cached Cydia SHSH blobs.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-white/5 text-xs text-slate-400">
+          <span class="font-mono">Device: iPhone 3GS</span>
+          <span class="text-cyan-400 font-medium flex items-center gap-1 group-hover:translate-x-1 transition-transform">Read Details &rarr;</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- WALLPAPERS & OS ARTWORK SECTION -->
+  <section id="wallpapers" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    
+    <div class="reveal-item text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Wallpapers & Linux Artwork</h2>
+      <p class="text-slate-400 text-sm sm:text-base">In addition to low-level hardware hacking, I design official desktop artwork for major Linux distributions.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- Wallpaper 1: Deb of Fame -->
+      <div class="reveal-item glass-card rounded-3xl p-6 flex flex-col justify-between space-y-6 group">
+        <div class="space-y-4">
+          <div class="h-48 w-full rounded-2xl bg-gradient-to-tr from-slate-900 via-sky-950 to-sky-800 border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:border-sky-400/40 transition-colors">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.25)_0%,transparent_70%)]"></div>
+            <div class="text-center p-4 relative z-10">
+              <span class="text-3xl font-black text-white tracking-widest uppercase">Deb of Fame</span>
+              <p class="text-xs text-sky-300 mt-1 font-mono">Debian 14 "Forky" Official Design Submission</p>
+            </div>
+          </div>
+          <div>
+            <span class="px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 text-[11px] font-semibold">Debian 14 Release Candidate</span>
+            <h3 class="text-2xl font-bold text-white mt-2">"Deb of Fame" — Debian 14 Wallpaper</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Designed and published "Deb of Fame", an atmospheric vector artwork submitted for inclusion as a default wallpaper in Debian 14.</p>
+          </div>
+        </div>
+        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+          <span>Target: Debian 14 Desktop</span>
+          <span class="text-sky-400 font-medium">Vector Graphics & Layout</span>
+        </div>
+      </div>
+
+      <!-- Wallpaper 2: Neo Numbat -->
+      <div class="reveal-item glass-card rounded-3xl p-6 flex flex-col justify-between space-y-6 group">
+        <div class="space-y-4">
+          <div class="h-48 w-full rounded-2xl bg-gradient-to-tr from-slate-900 via-cyan-950 to-cyan-800 border border-white/10 flex items-center justify-center relative overflow-hidden group-hover:border-cyan-400/40 transition-colors">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.25)_0%,transparent_70%)]"></div>
+            <div class="text-center p-4 relative z-10">
+              <span class="text-3xl font-black text-white tracking-widest uppercase">Neo Numbat</span>
+              <p class="text-xs text-cyan-300 mt-1 font-mono">Ubuntu 24.04 LTS Official Contest Entry</p>
+            </div>
+          </div>
+          <div>
+            <span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-[11px] font-semibold">Ubuntu 24.04 LTS</span>
+            <h3 class="text-2xl font-bold text-white mt-2">"Neo Numbat" — Ubuntu 24.04 LTS</h3>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">Created "Neo Numbat" for the official Ubuntu 24.04 LTS Noble Numbat wallpaper competition, bringing a sleek futuristic aesthetic to GNOME desktops.</p>
+          </div>
+        </div>
+        <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+          <span>Target: Ubuntu 24.04 LTS</span>
+          <span class="text-cyan-400 font-medium">Ubuntu Community Showcase</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- THE 100+ DEVICE VAULT SHOWCASE -->
+  <section id="vault" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    
+    <div class="reveal-item text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">The 100+ Hardware Collection</h2>
+      <p class="text-slate-400 text-sm sm:text-base">I preserve and maintain over 100 physical hardware devices — from common daily phones to the rarest gadgets in tech history.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Vault Item 1: Sony Tablet P -->
+      <div class="reveal-item glass-card p-6 rounded-3xl space-y-4">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        </div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-bold uppercase tracking-wider">Rare Collector Item</span>
+        <h3 class="text-xl font-bold text-white">Sony Tablet P (Dual Screen)</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Fully functional dual-screen foldable Android tablet released in 2011. One of the rarest working mobile devices in preservation.</p>
+      </div>
+
+      <!-- Vault Item 2: HP Jornada 728 -->
+      <div class="reveal-item glass-card p-6 rounded-3xl space-y-4">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-bold uppercase tracking-wider">Retro Handheld PDA</span>
+        <h3 class="text-xl font-bold text-white">HP Jornada 728</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Legendary 2002 physical keyboard handheld PDA running Windows for Handheld PC 2000 (Windows CE 3.0).</p>
+      </div>
+
+      <!-- Vault Item 3: Common & Legacy iOS/Android Devices -->
+      <div class="reveal-item glass-card p-6 rounded-3xl space-y-4">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        </div>
+        <span class="inline-block px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-300 text-[10px] font-bold uppercase tracking-wider">Testbed Fleet</span>
+        <h3 class="text-xl font-bold text-white">iPhone 6 & 100+ Testbeds</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">From everyday staples like the iPhone 6 and iPod touch fleet to Poco X3 Pro, Redmi K20 Pro, and Samsung Galaxy S2 testbeds.</p>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- TIMELINE JOURNEY -->
+  <section id="journey" class="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+    
+    <div class="reveal-item text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">My Engineering Journey</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Six years of learning, hacking hardware, releasing content, and building software.</p>
+    </div>
+
+    <div class="relative border-l border-sky-500/20 ml-4 sm:ml-32 space-y-12">
+
+      <!-- 2020 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '20
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2020</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">First Custom ROM Flashed</h3>
+          <p class="text-slate-400 text-sm">Flashed my very first custom Android ROM — sparking a lifelong passion for low-level operating systems.</p>
+        </div>
+      </div>
+
+      <!-- 2021 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '21
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2021</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Virtualization Deep Dive</h3>
+          <p class="text-slate-400 text-sm">Began experimenting with virtualization hypervisors, nested OS pass-throughs, and system emulation.</p>
+        </div>
+      </div>
+
+      <!-- 2022 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '22
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2022</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Hackintosh & Linux Adoption</h3>
+          <p class="text-slate-400 text-sm">Successfully built custom macOS Hackintoshes and migrated core workflows to Linux distributions like Ubuntu and Debian.</p>
+        </div>
+      </div>
+
+      <!-- 2023 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '23
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2023</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Daily Driving Linux & Hardware Milestones</h3>
+          <p class="text-slate-400 text-sm">Switched to Linux daily, ported Windows 11 onto a Poco X3 Pro, acquired M2 Mac Mini, and restored iPhone 3GS via SHSH blobs to iOS 3.1.2.</p>
+        </div>
+      </div>
+
+      <!-- 2024 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '24
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2024</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Ubuntu Wallpaper Contest & Arch Linux</h3>
+          <p class="text-slate-400 text-sm">Designed "Neo Numbat" for Ubuntu 24.04 LTS, adopted Arch Linux, and published custom GSI ROM builds for Redmi K20 Pro.</p>
+        </div>
+      </div>
+
+      <!-- 2025 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '25
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2025</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Viral Growth & iOS Driver Patching</h3>
+          <p class="text-slate-400 text-sm">Patched multitouch in iOS 7 for iPod touch 4G, reached millions on TikTok and YouTube Shorts, booted mainline Linux on Poco X3 Pro, and published viral memes.</p>
+        </div>
+      </div>
+
+      <!-- 2026 -->
+      <div class="reveal-item relative pl-8 group">
+        <div class="absolute -left-[17px] top-1.5 w-8 h-8 rounded-full bg-slate-950 border-2 border-sky-400 flex items-center justify-center text-sky-400 text-xs font-bold shadow-md shadow-sky-500/30 group-hover:scale-110 transition-transform">
+          '26
+        </div>
+        <div class="hidden sm:block absolute -left-32 top-1.5 text-xs font-mono text-sky-400 font-bold">2026</div>
+        <div class="glass-card p-6 rounded-2xl space-y-1">
+          <h3 class="text-lg font-bold text-white">Nexus 10 AOSP & UTM JIT Virtualization</h3>
+          <p class="text-slate-400 text-sm">Compiled Android 4.2.2 AOSP from source for Google Nexus 10 and booted KDE Debian on M5 iPad Pro with UTM Hypervisor JIT compilation.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- SOCIAL PROFILES SECTION -->
+  <section id="socials" class="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+    
+    <div class="reveal-item text-center max-w-2xl mx-auto mb-16 space-y-3">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Connect Across Platforms</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Find my latest videos, open-source repositories, and community discussions.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- TikTok -->
+      <a href="https://tiktok.com/@cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64c.29 0 .56.04.82.1v-3.6a6.36 6.36 0 00-1-.08 6.5 6.5 0 106.5 6.5V7.93a8.28 8.28 0 004.84 1.55V6a4.83 4.83 0 01-1.05-.69z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">TikTok</h4>
+          <p class="text-slate-400 text-xs font-mono">@cidstech</p>
+        </div>
+      </a>
+
+      <!-- Instagram -->
+      <a href="https://instagram.com/cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">Instagram</h4>
+          <p class="text-slate-400 text-xs font-mono">@cidstech</p>
+        </div>
+      </a>
+
+      <!-- X / Twitter -->
+      <a href="https://x.com/cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">X (Twitter)</h4>
+          <p class="text-slate-400 text-xs font-mono">@cidstech</p>
+        </div>
+      </a>
+
+      <!-- Telegram -->
+      <a href="https://t.me/cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">Telegram</h4>
+          <p class="text-slate-400 text-xs font-mono">@cidstech</p>
+        </div>
+      </a>
+
+      <!-- Discord -->
+      <a href="https://discord.com" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128c.126-.093.252-.19.373-.287a.074.074 0 01.077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 01.078.009c.12.098.246.195.373.288a.077.077 0 01-.006.127c-.598.35-1.22.647-1.873.894a.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">Discord</h4>
+          <p class="text-slate-400 text-xs font-mono">@cidstech</p>
+        </div>
+      </a>
+
+      <!-- YouTube -->
+      <a href="https://youtube.com/@Cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">YouTube</h4>
+          <p class="text-slate-400 text-xs font-mono">@Cidstech</p>
+        </div>
+      </a>
+
+      <!-- GitHub -->
+      <a href="https://github.com/cidstech" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">GitHub</h4>
+          <p class="text-slate-400 text-xs font-mono">cidstech</p>
+        </div>
+      </a>
+
+      <!-- Reddit -->
+      <a href="https://reddit.com/user/GoldenWubbabunga" target="_blank" rel="noopener noreferrer" 
+         class="reveal-item glass-card p-5 rounded-2xl flex items-center gap-4 group">
+        <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:border-sky-400 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 01.042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 014.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 01.14-.197.35.35 0 01.238-.042l2.906.617a1.214 1.214 0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.562-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.688-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 00-.231.094.33.33 0 000 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 000-.463.33.33 0 00-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.197-2.512-.73a.326.326 0 00-.203-.094z"/></svg>
+        </div>
+        <div>
+          <h4 class="text-white font-bold text-sm group-hover:text-sky-300 transition-colors">Reddit</h4>
+          <p class="text-slate-400 text-xs font-mono">u/GoldenWubbabunga</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer class="mt-auto py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10 text-center relative z-10">
+    <div class="max-w-4xl mx-auto space-y-4">
+      <div class="flex items-center justify-center gap-2">
+        <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-500 to-cyan-300 flex items-center justify-center text-slate-950 font-black text-xs">
+          C
+        </div>
+        <span class="font-extrabold text-sm text-white tracking-tight">CIDSTECH</span>
+      </div>
+      <p class="text-slate-400 text-xs font-medium">
+        Preserving legacy hardware & building open source • © 2026 Cidstech
+      </p>
+      <!-- Mandatory gemini watermark attribution -->
+      <p class="text-slate-500 text-[11px] font-mono tracking-wider">
+        Site Made With Google Gemini 3.6 Flash
+      </p>
+    </div>
+  </footer>
+
+</div>
+
+
+<!-- PROJECT DETAILS MODAL DIALOG -->
+<div id="project-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl transition-opacity duration-300">
+  <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-8 space-y-6 max-h-[85vh] overflow-y-auto no-scrollbar relative shadow-2xl border-white/20">
+    
+    <button onclick="closeProjectModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+
+    <div id="modal-content" class="space-y-4">
+      <!-- Dynamic modal content injected by JS -->
+    </div>
+
+    <div class="pt-4 border-t border-white/10 flex justify-end">
+      <button onclick="closeProjectModal()" class="px-5 py-2.5 rounded-xl bg-sky-500 text-slate-950 font-semibold text-xs tracking-wide hover:bg-sky-400 transition-colors">
+        Close Window
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- WEBGL SHADER & INTERACTION SCRIPTS -->
+<script>
+  // ===== WEBGL SKY MESH GRADIENT SHADER =====
+  const canvas = document.getElementById('webgl-sky-canvas');
+  let gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+
+  if (gl) {
+    function resizeCanvas() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + 'px';
-      canvas.style.height = window.innerHeight + 'px';
       gl.viewport(0, 0, canvas.width, canvas.height);
     }
-    resize();
-    window.addEventListener('resize', resize);
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     const vsSource = `
-      attribute vec2 a_pos;
-      void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+      attribute vec2 a_position;
+      void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
     `;
 
+    // Fluid sky mesh GLSL fragment shader
     const fsSource = `
       precision highp float;
       uniform float u_time;
       uniform vec2 u_resolution;
-      uniform vec3 u_colors[5];
-      uniform float u_meshSpeed;
 
-      // Simplex-like noise
       vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
       vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-      vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+      vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
       vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
       float snoise(vec3 v) {
-        const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+        const vec2 C = vec2(1.0/6.0, 1.0/3.0);
         const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-        vec3 i = floor(v + dot(v, C.yyy));
+        vec3 i  = floor(v + dot(v, C.yyy));
         vec3 x0 = v - i + dot(i, C.xxx);
         vec3 g = step(x0.yzx, x0.xyz);
         vec3 l = 1.0 - g;
@@ -528,317 +819,243 @@
         vec3 x3 = x0 - D.yyy;
         i = mod289(i);
         vec4 p = permute(permute(permute(
-              i.z + vec4(0.0, i1.z, i2.z, 1.0))
-            + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-            + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                  i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                + i.x + vec4(0.0, i1.x, i2.x, 1.0));
         float n_ = 0.142857142857;
         vec3 ns = n_ * D.wyz - D.xzx;
         vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
         vec4 x_ = floor(j * ns.z);
         vec4 y_ = floor(j - 7.0 * x_);
-        vec4 x = x_ * ns.x + ns.yyyy;
-        vec4 y = y_ * ns.x + ns.yyyy;
+        vec4 x = x_ *ns.x + ns.yyyy;
+        vec4 y = y_ *ns.x + ns.yyyy;
         vec4 h = 1.0 - abs(x) - abs(y);
         vec4 b0 = vec4(x.xy, y.xy);
         vec4 b1 = vec4(x.zw, y.zw);
-        vec4 s0 = floor(b0) * 2.0 + 1.0;
-        vec4 s1 = floor(b1) * 2.0 + 1.0;
+        vec4 s0 = floor(b0)*2.0 + 1.0;
+        vec4 s1 = floor(b1)*2.0 + 1.0;
         vec4 sh = -step(h, vec4(0.0));
-        vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
-        vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+        vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
         vec3 p0 = vec3(a0.xy, h.x);
         vec3 p1 = vec3(a0.zw, h.y);
         vec3 p2 = vec3(a1.xy, h.z);
         vec3 p3 = vec3(a1.zw, h.w);
-        vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
         p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-        vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+        vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
         m = m * m;
-        return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+        return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
       }
 
       void main() {
-        vec2 uv = gl_FragCoord.xy / u_resolution;
-        vec2 p = uv * 2.0 - 1.0;
-        float t = u_time * u_meshSpeed;
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
         float aspect = u_resolution.x / u_resolution.y;
-        p.x *= aspect;
+        vec2 st = vec2(uv.x * aspect, uv.y);
 
-        // Domain warping for organic mesh flow (iPhone X style)
-        float q = snoise(vec3(p * 0.5, t * 0.3));
-        vec2 r = vec2(
-          snoise(vec3(p * 0.5 + q + vec2(0.0, 0.0), t * 0.25)),
-          snoise(vec3(p * 0.5 + q + vec2(5.2, 1.3), t * 0.3))
-        );
+        float t = u_time * 0.12;
 
-        // Second layer of warping
-        float s = snoise(vec3(p * 0.75 + r * 1.5, t * 0.2 + 10.0));
-        vec2 w = vec2(
-          snoise(vec3(p * 0.75 + s + r * 1.2 + vec2(1.7, 9.2), t * 0.35)),
-          snoise(vec3(p * 0.75 + s + r * 1.2 + vec2(8.3, 2.8), t * 0.2 + 5.0))
-        );
+        // Domain warping for organic sky gradient movement
+        float n1 = snoise(vec3(st * 1.2, t));
+        float n2 = snoise(vec3(st * 1.8 + vec2(n1 * 0.8), t * 1.2));
+        float n3 = snoise(vec3(st * 0.8 - vec2(n2 * 0.5), t * 0.8));
 
-        // Five mesh points arranged in a pentagon-like pattern
-        vec2 points[5];
-        points[0] = vec2(-0.6, -0.4);   // bottom-left: purple
-        points[1] = vec2(0.6, -0.5);     // bottom-right: red
-        points[2] = vec2(-0.3, 0.5);     // top-left: magenta
-        points[3] = vec2(0.7, 0.3);      // top-right: orange
-        points[4] = vec2(0.0, 0.0);      // center: teal
+        // Sky Color Palette (Cyan, Sky Blue, Deep Azure, Cloud White Highlight)
+        vec3 skyDeep  = vec3(0.03, 0.07, 0.14); // Deep Navy Horizon
+        vec3 skyBlue  = vec3(0.0, 0.45, 0.85);  // Electric Sky Blue
+        vec3 skyCyan  = vec3(0.02, 0.72, 0.88); // Radiant Cyan
+        vec3 skyLight = vec3(0.70, 0.90, 0.98); // Soft Cloud Sunlight
 
-        // Animate points with warped noise
-        for (int i = 0; i < 5; i++) {
-          points[i] += vec2(
-            sin(t * (0.3 + float(i) * 0.1) + float(i) * 1.5) * 0.3,
-            cos(t * (0.25 + float(i) * 0.08) + float(i) * 2.1) * 0.3
-          );
-          // Add warp influence
-          points[i] += w * 0.15;
-        }
+        // Layer Blending
+        vec3 color = mix(skyDeep, skyBlue, smoothstep(-0.6, 0.6, n1));
+        color = mix(color, skyCyan, smoothstep(-0.4, 0.8, n2) * 0.8);
+        color = mix(color, skyLight, smoothstep(0.3, 1.0, n3) * 0.35);
 
-        // Calculate distance field to each point
-        float dists[5];
-        for (int i = 0; i < 5; i++) {
-          dists[i] = length(p - points[i]);
-        }
+        // Subtle atmospheric vignetting
+        float dist = length(uv - vec2(0.5));
+        color *= (1.0 - dist * 0.45);
 
-        // Soft minimum for smooth mesh blending
-        float minDist = 1000.0;
-        float weight[5];
-        float totalWeight = 0.0;
-        for (int i = 0; i < 5; i++) {
-          weight[i] = exp(-dists[i] * 1.8);
-          totalWeight += weight[i];
-        }
-
-        // Normalize weights
-        for (int i = 0; i < 5; i++) {
-          weight[i] /= totalWeight;
-        }
-
-        // Blend colors
-        vec3 col = vec3(0.0);
-        for (int i = 0; i < 5; i++) {
-          col += u_colors[i] * weight[i];
-        }
-
-        // Add subtle noise overlay for texture
-        float n = snoise(vec3(p * 3.0, t * 0.15)) * 0.03;
-        col += n;
-
-        // Enhance contrast and saturation
-        col = col * 1.15;
-        col = clamp(col, 0.0, 1.0);
-
-        // Subtle vignette
-        float vignette = 1.0 - dot(uv - 0.5, uv - 0.5) * 0.8;
-        col *= vignette;
-
-        // Darken for rich deep feel (no black)
-        col *= 0.72;
-        col += vec3(0.025, 0.015, 0.04);
-
-        // Tone mapping
-        col = col / (col + 0.8) * 1.1;
-
-        gl_FragColor = vec4(col, 1.0);
+        gl_FragColor = vec4(color, 1.0);
       }
     `;
 
-    function compile(src, type) {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(s));
+    function compileShader(src, type) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, src);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(shader));
         return null;
       }
-      return s;
+      return shader;
     }
 
-    const v = compile(vsSource, gl.VERTEX_SHADER);
-    const f = compile(fsSource, gl.FRAGMENT_SHADER);
-    if (!v || !f) return;
-
-    program = gl.createProgram();
-    gl.attachShader(program, v);
-    gl.attachShader(program, f);
-    gl.linkProgram(program);
-    gl.useProgram(program);
+    const vert = compileShader(vsSource, gl.VERTEX_SHADER);
+    const frag = compileShader(fsSource, gl.FRAGMENT_SHADER);
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vert);
+    gl.attachShader(prog, frag);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
 
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
-    const aPos = gl.getAttribLocation(program, 'a_pos');
+
+    const aPos = gl.getAttribLocation(prog, 'a_position');
     gl.enableVertexAttribArray(aPos);
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
 
-    u_time = gl.getUniformLocation(program, 'u_time');
-    u_resolution = gl.getUniformLocation(program, 'u_resolution');
+    const uTime = gl.getUniformLocation(prog, 'u_time');
+    const uRes = gl.getUniformLocation(prog, 'u_resolution');
 
-    animate();
-  }
-
-  function updateColorUniforms() {
-    if (!gl || !program) return;
-    for (let i = 0; i < 5; i++) {
-      const loc = gl.getUniformLocation(program, `u_colors[${i}]`);
-      if (loc) gl.uniform3f(loc, meshColors[i][0], meshColors[i][1], meshColors[i][2]);
+    let startTime = performance.now();
+    function render() {
+      const now = performance.now();
+      gl.uniform1f(uTime, (now - startTime) * 0.001);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      requestAnimationFrame(render);
     }
+    render();
   }
 
-  function animate() {
-    timeVal += 0.016;
-    gl.uniform1f(u_time, timeVal);
-    gl.uniform2f(u_resolution, canvas.width, canvas.height);
-    updateColorUniforms();
-    gl.uniform1f(gl.getUniformLocation(program, 'u_meshSpeed') || u_time, meshSpeed);
-    // Actually set mesh speed
-    const msLoc = gl.getUniformLocation(program, 'u_meshSpeed');
-    if (msLoc) gl.uniform1f(msLoc, meshSpeed);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    requestAnimationFrame(animate);
-  }
 
-  // Fix: set u_meshSpeed in the loop
-  function animateFixed() {
-    timeVal += 0.016;
-    gl.uniform1f(u_time, timeVal);
-    gl.uniform2f(u_resolution, canvas.width, canvas.height);
-    const msLoc = gl.getUniformLocation(program, 'u_meshSpeed');
-    if (msLoc) gl.uniform1f(msLoc, meshSpeed);
-    updateColorUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    requestAnimationFrame(animateFixed);
-  }
+  // ===== DESKTOP SPRING CURSOR LOGIC =====
+  const cursorDot = document.getElementById('cursor-dot');
+  const cursorRing = document.getElementById('cursor-ring');
 
-  initWebGL();
+  if (cursorDot && cursorRing) {
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let ringX = mouseX, ringY = mouseY;
 
-  // ===== LOADING =====
-  const loaderText = document.getElementById('loader-text');
-  'CIDSTECH'.split('').forEach((c, i) => {
-    const s = document.createElement('span');
-    s.textContent = c;
-    s.style.animationDelay = `${i * 0.1 + 0.3}s`;
-    loaderText.appendChild(s);
-  });
-  setTimeout(() => document.getElementById('loading-screen').classList.add('hidden'), 2200);
-
-  // ===== GLOW CURSOR =====
-  const glowCursor = document.getElementById('glow-cursor');
-  document.addEventListener('mousemove', (e) => {
-    glowCursor.style.left = e.clientX + 'px';
-    glowCursor.style.top = e.clientY + 'px';
-  });
-
-  // ===== SETTINGS =====
-  const settingsPanel = document.getElementById('settings-panel');
-  document.getElementById('settings-toggle').addEventListener('click', () => settingsPanel.classList.toggle('open'));
-  document.getElementById('settings-close').addEventListener('click', () => settingsPanel.classList.remove('open'));
-
-  document.getElementById('anim-speed').addEventListener('input', (e) => {
-    document.documentElement.style.setProperty('--anim-speed', e.target.value);
-    document.getElementById('anim-speed-val').textContent = e.target.value + 's';
-  });
-  document.getElementById('gaussian-blur').addEventListener('input', (e) => {
-    document.documentElement.style.setProperty('--gaussian-blur', e.target.value + 'px');
-    document.getElementById('gaussian-blur-val').textContent = e.target.value + 'px';
-  });
-  document.getElementById('mesh-speed').addEventListener('input', (e) => {
-    meshSpeed = parseFloat(e.target.value);
-    document.getElementById('mesh-speed-val').textContent = e.target.value;
-  });
-
-  // Color pickers
-  const colorInputs = ['mc1', 'mc2', 'mc3', 'mc4', 'mc5'];
-  colorInputs.forEach((id, idx) => {
-    document.getElementById(id).addEventListener('input', (e) => {
-      const hex = e.target.value;
-      const r = parseInt(hex.slice(1,3), 16) / 255;
-      const g = parseInt(hex.slice(3,5), 16) / 255;
-      const b = parseInt(hex.slice(5,7), 16) / 255;
-      meshColors[idx] = [r, g, b];
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
     });
-  });
 
-  document.getElementById('settings-reset').addEventListener('click', () => {
-    document.documentElement.style.setProperty('--anim-speed', '0.7');
-    document.documentElement.style.setProperty('--gaussian-blur', '12px');
-    document.getElementById('anim-speed').value = 0.7;
-    document.getElementById('anim-speed-val').textContent = '0.7s';
-    document.getElementById('gaussian-blur').value = 12;
-    document.getElementById('gaussian-blur-val').textContent = '12px';
-    meshSpeed = 0.35;
-    document.getElementById('mesh-speed').value = 0.35;
-    document.getElementById('mesh-speed-val').textContent = '0.35';
-    meshColors = [
-      [0.482, 0.184, 0.969],
-      [1.0, 0.302, 0.427],
-      [0.753, 0.518, 0.988],
-      [1.0, 0.584, 0.0],
-      [0.145, 0.957, 0.933]
-    ];
-    document.getElementById('mc1').value = '#7b2ff7';
-    document.getElementById('mc2').value = '#ff4d6d';
-    document.getElementById('mc3').value = '#c084fc';
-    document.getElementById('mc4').value = '#ff9500';
-    document.getElementById('mc5').value = '#25f4ee';
-  });
+    function animateCursor() {
+      ringX += (mouseX - ringX) * 0.18;
+      ringY += (mouseY - ringY) * 0.18;
+      cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
 
-  // ===== SCROLL OBSERVER =====
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.section, .timeline-item').forEach(el => obs.observe(el));
+    document.querySelectorAll('a, button, [onclick]').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering-link'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-link'));
+    });
+  }
 
-  // ===== COUNTER =====
-  const cObs = new IntersectionObserver((entries) => {
+
+  // ===== SCROLL REVEAL OBSERVER =====
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      const suffix = el.dataset.suffix || '';
-      const start = performance.now();
-      (function tick(now) {
-        const p = Math.min((now - start) / 2000, 1);
-        el.textContent = Math.floor((1 - Math.pow(1 - p, 3)) * target);
-        if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = target + suffix;
-      })(start);
-      cObs.unobserve(el);
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll('.stat-number').forEach(el => cObs.observe(el));
-
-  // ===== PROJECT CARD EXPAND/COLLAPSE =====
-  let expandedCard = null;
-  document.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('click', function() {
-      if (expandedCard && expandedCard !== this) expandedCard.classList.remove('expanded');
-      if (this.classList.contains('expanded')) {
-        this.classList.remove('expanded');
-        expandedCard = null;
-        document.body.style.overflow = '';
-      } else {
-        this.classList.add('expanded');
-        expandedCard = this;
-        setTimeout(() => {
-          const rect = this.getBoundingClientRect();
-          if (rect.top < 100) window.scrollBy({ top: rect.top - 100, behavior: 'smooth' });
-        }, 100);
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
       }
     });
-  });
+  }, { threshold: 0.12 });
 
-  // Smooth scroll
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', function(e) {
-      e.preventDefault();
-      const t = document.querySelector(this.getAttribute('href'));
-      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.reveal-item').forEach(el => observer.observe(el));
+
+
+  // ===== COUNTER ANIMATION =====
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        let start = 0;
+        const duration = 1800;
+        const startTime = performance.now();
+
+        function updateCount(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease Out Expo
+          const currentCount = Math.floor(target * (progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress)));
+          
+          if (target >= 1000000) {
+            el.textContent = (currentCount / 1000000).toFixed(0) + suffix;
+          } else if (target >= 1000) {
+            el.textContent = (currentCount / 1000).toFixed(0) + suffix;
+          } else {
+            el.textContent = currentCount + suffix;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(updateCount);
+          }
+        }
+        requestAnimationFrame(updateCount);
+        counterObserver.unobserve(el);
+      }
     });
-  });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.counter-val').forEach(el => counterObserver.observe(el));
+
+
+  // ===== PROJECT MODAL DATA & DIALOG LOGIC =====
+  const projectDetails = {
+    nexus10: {
+      title: "AOSP ROMs for Nexus 10",
+      category: "AOSP / Device Tree Compilation",
+      desc: "Successfully set up the build environment to compile stock Android 4.2.2 Jelly Bean directly from AOSP source for the Google Nexus 10 (codenamed 'manta'). Resolved legacy driver dependencies and verified full hardware acceleration."
+    },
+    ipodtouch: {
+      title: "iOS 7 Multitouch Driver Fix",
+      category: "iOS Jailbreak / Driver Reverse Engineering",
+      desc: "Fixed multi-finger touch digitizer failure in an iOS 7 port for the 4th Generation iPod touch. Patched driver binaries to properly parse and translate multitouch gesture interrupts to modern iOS event subsystems."
+    },
+    ipadutm: {
+      title: "KDE Debian on M5 iPad Pro",
+      category: "UTM Hypervisor / Apple Silicon JIT",
+      desc: "Booted full desktop Linux KDE Debian on M5 iPad Pro hardware using UTM virtual machine software with Hypervisor JIT compilation enabled, demonstrating near-native Linux desktop performance on mobile tablets."
+    },
+    pocox3: {
+      title: "Poco X3 Pro Mainline Linux & Win11",
+      category: "ARM64 Mainline Kernel Porting",
+      desc: "Ported native Fedora Workstation using a custom mainline Linux kernel to the Poco X3 Pro smartphone, alongside dual-booting Windows 11 ARM for mobile hardware experimentation."
+    },
+    ipadmeme: {
+      title: "Viral 'iPad Older Than U' Meme",
+      category: "Tech Culture & Viral Media",
+      desc: "Created the original viral video showcasing retro hardware longevity that sparked widespread internet discussion and reached millions of viewers across TikTok, YouTube, and Reddit."
+    },
+    shsh: {
+      title: "iPhone 3GS SHSH Blob Downgrade",
+      category: "Firmware Preservation",
+      desc: "Downgraded an iPhone 3GS back to original iPhone OS 3.1.2 by extracting and validating cached Cydia SHSH blobs, bypassing modern signing checks."
+    }
+  };
+
+  function openProjectModal(key) {
+    const data = projectDetails[key];
+    if (!data) return;
+
+    const content = document.getElementById('modal-content');
+    content.innerHTML = `
+      <span class="px-3 py-1 rounded-full bg-sky-500/10 text-sky-300 text-xs font-semibold">${data.category}</span>
+      <h3 class="text-2xl font-black text-white mt-2">${data.title}</h3>
+      <p class="text-slate-300 text-sm leading-relaxed">${data.desc}</p>
+    `;
+
+    const modal = document.getElementById('project-modal');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProjectModal() {
+    const modal = document.getElementById('project-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 </script>
 </body>
 </html>
-
